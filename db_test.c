@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
 	int barra = 40;
 	int idaVuelta = 1;
 	while(1){
-		//usleep(500);
+		usleep(200);
 		if(idaVuelta == 1){//incrementa
 			(barra > 90) ? idaVuelta = 0 : (barra = barra + 10);
 		}
