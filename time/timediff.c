@@ -20,8 +20,10 @@ void main ()
 
     struct timeval tval_before, tval_after, tval_result;
 	gettimeofday(&tval_before, NULL);
-	long long microseconds;
-	long long milliseconds;
+	tval_before.tv_sec = 0;
+	tval_before.tv_usec = 0;
+	long int microseconds;
+	long int milliseconds;
 
 	while(1) {
 		usleep(500000);
@@ -31,8 +33,7 @@ void main ()
 		milliseconds = microseconds/1000;
 		tval_result.tv_sec = microseconds/1000000;
 		tval_result.tv_usec = microseconds%1000000;
-		//printf("tval_result: %ld.%06ld\n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
-		printf("time: %lld.%lld\n", microseconds/1000000, microseconds%1000000);
+		printf("tval_result: %ld.%06ld\n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
 
 	}
 	printf("\n");
