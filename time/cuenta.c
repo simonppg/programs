@@ -22,9 +22,11 @@ void main ()
 	gettimeofday(&tval_before, NULL);
 	long long microseconds;
 	long long milliseconds;
+	double ultimo = 0;
 
 	while(1) {
 		usleep(500000);
+		tval_before = tval_after;
 		gettimeofday(&tval_after, NULL);
 
 		microseconds = (tval_after.tv_sec - tval_before.tv_sec) * 1000000 + ((int)tval_after.tv_usec - (int)tval_before.tv_usec);
@@ -32,7 +34,10 @@ void main ()
 		tval_result.tv_sec = microseconds/1000000;
 		tval_result.tv_usec = microseconds%1000000;
 		//printf("tval_result: %ld.%06ld\n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+		//ultimo = ultimo + (microseconds/1000000) + ((microseconds%1000000) / 1000000) ;
+		ultimo = ((microseconds%1000000) / 1000000);
 		printf("time: %lld.%lld\n", microseconds/1000000, microseconds%1000000);
+		printf("ultimo: %lf\n", ultimo);
 
 	}
 	printf("\n");
