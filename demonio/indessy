@@ -1,0 +1,16 @@
+#!/bin/sh
+ 
+case "$1" in
+        start)
+              /usr/sbin/sistema.out
+              ;;
+        stop)
+              test -e /var/run/indessy.pid || exit 2
+              kill `cat /var/run/indessy.pid`
+              ;;
+        *)
+              echo "El uso es: $0 {start|stop}"
+              exit 1
+              ;;
+esac
+exit 0
