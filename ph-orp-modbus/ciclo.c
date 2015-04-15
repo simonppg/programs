@@ -6,17 +6,36 @@
 #include <errno.h>
 #include <modbus.h>
 #include <modbus-rtu.h>
+#include <math.h>
 
 modbus_t *ctx = NULL;
 
 //lista de registros arc sensors
-#define ADDRESS 4096 	/*N_reg 2, 
+#define ADDRESS 4096-1 	/*N_reg 2, 
 						Descrip: direccion del sensor en la red modbus
 						Modbus func: 3, 4, 16
 						I/O U/A/S - S
 						*/
+#define D_PMC1 2080-1 	/*N_reg 8, 
+						Descrip: descripcion de PCM1
+						Modbus func: 3, 4
+						I/O U/A/S - none
+						*/
+#define APU_PMC1 2088-1 /*N_reg 2, 
+						Descrip: Available physical units of PMC1
+						Modbus func: 3, 4
+						I/O U/A/S - none
+						*/
+#define RMV_PMC1 2090-1 /*N_reg 10, 
+						Descrip: read the measurement values of PMC1
+						Modbus func: 3, 4
+						I/O U/A/S - none
+						*/
+
+float getFloat(uint16_t h, uint16_t l);
 
 int main(){
+	float val;
 	uint32_t temperatura = 0;
 	int i,j;
 	int valor = -1, error = 100;
@@ -42,13 +61,15 @@ int main(){
 		printf("PH: \n");
 		slave = 1;
 		modbus_set_slave(ctx, slave);
-		addr = 4096-1;
-		nb = 2;
+		addr = RMV_PMC1;
+		nb = 10;
 		rc = modbus_read_registers( ctx, addr, nb, dest);
 		for (i=0; i < rc; i++) {
-		    printf("reg[%d]=%d (0x%X)\n", i, dest[i], dest[i]);
+		    printf("reg[%d]=%d (0x%X) %c\n", i, dest[i], dest[i], dest[i]);
 		}
-		rc = addr = nb = and = or = 0;
+		val = getFloat(dest[3], dest[2]);
+		printf("val: %d, 0x%x\n", val, val);
+		val = rc = addr = nb = and = or = 0;
 		for (j = 0; j < 64; ++j)
 		{
 			dest[j] = 0;
@@ -73,4 +94,19 @@ int main(){
 		sleep(5);*/
 	}
 	return 0;
+}
+
+float getFloat(uint16_t h, uint16_t l)
+{
+	float valor;
+	uint32_t tempEnC, s, e, m;
+	tempEnC = s = e = m = 0;
+	tempEnC = h;
+	tempEnC = tempEnC << 16;
+	tempEnC = tempEnC + l;
+	s = (tempEnC & 0x80000000) >> 31;
+	e = (tempEnC & 0x7F800000) >> 23;
+	m = (tempEnC & 0x007FFFFF);
+	valor = pow(-1,s)*(1.0+m/pow(2,23))*pow(2,(e-127));
+	return valor;
 }
