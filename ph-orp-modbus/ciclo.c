@@ -31,8 +31,15 @@ modbus_t *ctx = NULL;
 						Modbus func: 3, 4
 						I/O U/A/S - none
 						*/
+#define APL_PMC1 4288-1 /*N_reg 4, 
+						Descrip: active operator level
+						Modbus func: 3, 4, 16
+						I/O U/A/S - U/A/S
+						*/
 
 float getFloat(uint16_t h, uint16_t l);
+
+int adminPass = 18111978;
 
 int main(){
 	float val;
@@ -42,6 +49,7 @@ int main(){
 	int slave=-1;
 	int rc, addr, nb, sensor;
 	uint16_t dest[64], and, or;
+	int ant[64];
 	printf("Lectura de PH y orp\n");
 	ctx = modbus_new_rtu("/dev/ttyUSB0", 19200, 'N', 8, 2);
 	if(ctx == NULL)
@@ -61,6 +69,46 @@ int main(){
 		printf("PH: \n");
 		slave = 1;
 		modbus_set_slave(ctx, slave);
+		//leyendo modo de operacion
+		addr = APL_PMC1;
+		nb = 4;
+		rc = modbus_read_registers( ctx, addr, nb, dest);
+		for (i=0; i < rc; i++) {
+		    printf("reg[%d]=%d (0x%X) %c\n", i, dest[i], dest[i], dest[i]);
+		}
+		rc = addr = nb = and = or = 0;
+		for (j = 0; j < 64; ++j)
+		{
+			dest[j] = 0;
+		}
+		sleep(5);
+
+		//Cambiando a modo administrador
+		dest[0] = 0x0;
+		dest[1] = 0xC;
+
+		ant[0] = adminPass;
+		for ( i = 0; i < 16; ++i)
+		{
+			dest[i+2] = (ant[i] - (ant[i]/16)*16);
+			ant[i+1] = ant[i]/16;
+			//printf("\nant %d_",ant[i]);
+		}
+
+		addr = APL_PMC1;
+		nb = 4;
+		rc = modbus_write_registers( ctx, addr, nb, dest);
+		for (i=0; i < rc; i++) {
+		    printf("reg[%d]=%d (0x%X) %c\n", i, dest[i], dest[i], dest[i]);
+		}
+		rc = addr = nb = and = or = 0;
+		for (j = 0; j < 64; ++j)
+		{
+			dest[j] = 0;
+		}
+		sleep(5);
+
+
 		addr = RMV_PMC1;
 		nb = 10;
 		rc = modbus_read_registers( ctx, addr, nb, dest);
