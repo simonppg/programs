@@ -68,7 +68,7 @@ int main(){
 		    printf("reg[%d]=%d (0x%X) %c\n", i, dest[i], dest[i], dest[i]);
 		}
 		val = getFloat(dest[3], dest[2]);
-		printf("val: %d, 0x%x\n", val, val);
+		printf("val: %d, 0x%x %f\n", val, val, val);
 		val = rc = addr = nb = and = or = 0;
 		for (j = 0; j < 64; ++j)
 		{
