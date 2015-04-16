@@ -1,75 +1,118 @@
 #include <stdio.h>
 
-int main(){
-
-	int adminPass = 18111978;
-	short dest[64];
+float decToHex(int user, int pass, short *dest)
+{
+	int i = 0,j=0;
 	int ant[64];
-	int i = 0;
-
-	printf("\n%d ",adminPass);
+	char lo1,hi1,lo2,hi2;
+	lo1 = hi1 = lo2 = hi2 = 0;
 	for ( i = 0; i < 64; ++i)
 	{
 		dest[i] = 0;
 		ant[i] = 0;
 	}
-
-	/*dest[0] = 0x0;
-	dest[1] = 0xC;
-	dest[2] = (adminPass >> 16) & 0xffff;
-	dest[3] = adminPass & 0xffff;*/
-
-	/*dest[2] = adminPass / 100000;
-	dest[3] = adminPass % 100000;*/
-
-	/*for ( i = 0; i < 4; ++i)
+	ant[0] = pass;
+	i=0;
+	while(ant[i] > 0 && i<64)
 	{
-		printf("%d_", dest[i]);
+		ant[i+1] = ant[i]/16;
+		i++;
 	}
 	printf("\n");
+	i=0;
+	while(ant[i] > 0)
+	{
+		j = 0;
+		while(j < 4)
+		{
+			switch(j){
+				case 0:
+					lo2 = (ant[i] - (ant[i]/16)*16);
+					//printf("_%d",hi1);
+					break;
+				case 1:
+					hi2 = (ant[i+1] - (ant[i+1]/16)*16);
+					//printf("_%d",lo1);
+					break;
+				case 2:
+					lo1 = (ant[i+2] - (ant[i+2]/16)*16);
+					//printf("_%d",hi2);
+					break;
+				case 3:
+					hi1 = (ant[i+3] - (ant[i+3]/16)*16);
+					//printf("_%d",lo2);
+					break;
+			}			
+			j++;
+		}
+		printf("  i:%d %x%x%x%x  ",((i/4)+1),lo2,hi2,lo1,hi1);
+		dest[4-((i/4)+1)] = lo2 | (hi2) << 4 | (lo1) << 8 | (hi1) << 12;
+		//dest[4-(i-(i/2)+1)] = lo2 | (hi2) << 4 | (lo1) << 8 | (hi1) << 16;
+
+		//dest[4-(i-(i/2)+1)] = lo | (hi1) << 8;
+		//dest[3-(i-(i/2))] |= lo;
+		//dest[3-(i-(i/2)+1)] |= (hi1) << 8;
+		lo1 = hi1 = lo2 = hi2 = 0;
+		i += 4;
+	}
+	dest[1] += user;
+	/*printf("\n");
 	for ( i = 0; i < 4; ++i)
 	{
-		printf("%x_", dest[i]);
-	}
+		lo = dest[i] & 0xFF;
+		hi = dest[i] >> 8;
 
-	printf("\npass: %d", dest[2] + (dest[3] << 16));*/
+		printf("[%x]",lo);
+		printf("[%x]",hi);
+	}*/
+}
 
-	ant[0] = adminPass;
+int main(){
 
-	for ( i = 0; i < 16; ++i)
-	{
-		dest[i+2] = (ant[i] - (ant[i]/16)*16);
-		ant[i+1] = ant[i]/16;
-		//TODO guardar dos valores en un mismo offset del vector
-		//[0][0][a][e][d][5][4][1][1][0][0][0][0][0][0][0] //trama generada por este programa y la segunda es la generada por modbus, nota como tambien cuenta la parte alta del vector
-		//[01][10][10][BF][00][08][10][00][00][00][0C][00][0A][00][0E][00][0D][00][05][00][04][00][01][E9][3D]
-		//printf("\nant %d_",ant[i]);
-	}
+	//int adminPass = 2227169;//nada
+	int adminPass = 18111978;//0xc
+	//int adminPass = 16021966;//0x30
+	
+	short dest[64];
+	
+	int i = 0,j=0;
+	char lo = 0;
+	char hi = 0;
+
+	decToHex(0x0C, adminPass, dest);
 	printf("\n");
-	for ( i = 0; i < 16; ++i)
+	//decToHexmal(0xC, adminPass, dest);
+
+	printf("\n\n");
+	for ( i = 0; i < 4; ++i)
 	{
 		printf("[%x]", dest[i]);
 	}
 	printf("\n");
-	for ( i = 0; i < 16; ++i)
-	{
-		printf("[%d]", ant[i]);
-	}
-
-	
-	/*printf("\nvalor: %d",adminPass - (adminPass/16)*16);
-	printf("\n%ld",sizeof(char));
-	printf("\n%ld",sizeof(short));*/
-
-
 	return 0;
 }
+/*[0,1][1,4][5,d][e,a]
+[c][1][1][4][5][d][e][a] //mi trama
+[01]//slave
+[10]//16 escritura
+[10][BF]//addr 4288-1
+[00][04]//numero de registros
+[08]//no se
+[01][0C]
+[04][01]
+[0D][05]
+[0A][0E]
+[7A][81]//fin trama
 
-
-/*18 111 978/16 
-1 131 998/16
-70749/16
-4421/16
-276/16
-17/16
-1/16*/
+//trama 2
+[01]
+[10]
+[10][BF]
+[00][04]
+[08]
+[00][00]
+[00][0C]
+[01][14]
+[5D][EA]
+[36][26]
+*/

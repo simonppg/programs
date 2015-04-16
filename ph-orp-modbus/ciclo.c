@@ -38,6 +38,7 @@ modbus_t *ctx = NULL;
 						*/
 
 float getFloat(uint16_t h, uint16_t l);
+float decToHex(int user, int pass, short *dest);
 
 int adminPass = 18111978;
 
@@ -84,19 +85,9 @@ int main(){
 		sleep(5);
 
 		//Cambiando a modo administrador
-		dest[0] = 0x0;
-		dest[1] = 0xC;
-
-		ant[0] = adminPass;
-		for ( i = 0; i < 16; ++i)
-		{
-			dest[i+2] = (ant[i] - (ant[i]/16)*16);
-			ant[i+1] = ant[i]/16;
-			//printf("\nant %d_",ant[i]);
-		}
-
 		addr = APL_PMC1;
 		nb = 4;
+		decToHex(0x0C, adminPass, dest);
 		rc = modbus_write_registers( ctx, addr, nb, dest);
 		for (i=0; i < rc; i++) {
 		    printf("reg[%d]=%d (0x%X) %c\n", i, dest[i], dest[i], dest[i]);
@@ -109,9 +100,10 @@ int main(){
 		sleep(5);
 
 
-		addr = RMV_PMC1;
+		/*addr = RMV_PMC1;
 		nb = 10;
 		rc = modbus_read_registers( ctx, addr, nb, dest);
+		printf("%s\n",modbus_strerror(rc));
 		for (i=0; i < rc; i++) {
 		    printf("reg[%d]=%d (0x%X) %c\n", i, dest[i], dest[i], dest[i]);
 		}
@@ -122,7 +114,7 @@ int main(){
 		{
 			dest[j] = 0;
 		}
-		sleep(5);
+		sleep(5);*/
 
 		/*printf("ORP: \n");
 		slave = 4;
@@ -157,4 +149,71 @@ float getFloat(uint16_t h, uint16_t l)
 	m = (tempEnC & 0x007FFFFF);
 	valor = pow(-1,s)*(1.0+m/pow(2,23))*pow(2,(e-127));
 	return valor;
+}
+
+float decToHex(int user, int pass, short *dest)
+{
+	int i = 0,j=0;
+	int ant[64];
+	char lo1,hi1,lo2,hi2;
+	lo1 = hi1 = lo2 = hi2 = 0;
+	for ( i = 0; i < 64; ++i)
+	{
+		dest[i] = 0;
+		ant[i] = 0;
+	}
+	ant[0] = pass;
+	i=0;
+	while(ant[i] > 0 && i<64)
+	{
+		ant[i+1] = ant[i]/16;
+		i++;
+	}
+	printf("\n");
+	i=0;
+	while(ant[i] > 0)
+	{
+		j = 0;
+		while(j < 4)
+		{
+			switch(j){
+				case 0:
+					lo2 = (ant[i] - (ant[i]/16)*16);
+					//printf("_%d",hi1);
+					break;
+				case 1:
+					hi2 = (ant[i+1] - (ant[i+1]/16)*16);
+					//printf("_%d",lo1);
+					break;
+				case 2:
+					lo1 = (ant[i+2] - (ant[i+2]/16)*16);
+					//printf("_%d",hi2);
+					break;
+				case 3:
+					hi1 = (ant[i+3] - (ant[i+3]/16)*16);
+					//printf("_%d",lo2);
+					break;
+			}			
+			j++;
+		}
+		printf("  i:%d %x%x%x%x  ",((i/4)+1),lo2,hi2,lo1,hi1);
+		dest[4-((i/4)+1)] = lo2 | (hi2) << 4 | (lo1) << 8 | (hi1) << 12;
+		//dest[4-(i-(i/2)+1)] = lo2 | (hi2) << 4 | (lo1) << 8 | (hi1) << 16;
+
+		//dest[4-(i-(i/2)+1)] = lo | (hi1) << 8;
+		//dest[3-(i-(i/2))] |= lo;
+		//dest[3-(i-(i/2)+1)] |= (hi1) << 8;
+		lo1 = hi1 = lo2 = hi2 = 0;
+		i += 4;
+	}
+	dest[1] += user;
+	/*printf("\n");
+	for ( i = 0; i < 4; ++i)
+	{
+		lo = dest[i] & 0xFF;
+		hi = dest[i] >> 8;
+
+		printf("[%x]",lo);
+		printf("[%x]",hi);
+	}*/
 }
