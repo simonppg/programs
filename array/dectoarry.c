@@ -88,6 +88,27 @@ int main(){
 	{
 		printf("[%x]", dest[i]);
 	}
+
+
+
+	int b1,b2,b3,b4;
+	b1 = 2;
+	b2 = 1;
+	b3 = 0;
+	b4 = 4;
+	float brix_uart1;
+
+	brix_uart1 = (b1*10.0)+(b2*1.0)+(b3/10.0)+(b4/100.0);
+	printf("\nbrix_uart1 %f", brix_uart1);
+
+
+
+
+
+
+
+
+
 	printf("\n");
 	return 0;
 }
