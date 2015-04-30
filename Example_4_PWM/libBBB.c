@@ -331,7 +331,7 @@ int setPWMPeriod(int helpnum, char* pin, int period)
 {
 	FILE *pwm;
 	char buf[5];
-	char buf2[60] = "/sys/devices/ocp.2/pwm_test_";
+	char buf2[60] = "/sys/devices/ocp.3/pwm_test_";
 
 	//build file path
 	sprintf(buf,"%i",helpnum);
@@ -355,7 +355,7 @@ int setPWMDuty(int helpnum, char* pin, int duty)
 {
 	FILE *pwm;
 	char buf[5];
-	char buf2[50] = "/sys/devices/ocp.2/pwm_test_";
+	char buf2[50] = "/sys/devices/ocp.3/pwm_test_";
 
 	//build file path
 	sprintf(buf,"%i",helpnum);
@@ -377,7 +377,7 @@ int setPWMOnOff(int helpnum, char* pin, int run)
 {
 	FILE *pwm;
 	char buf[5];
-	char buf2[50] = "/sys/devices/ocp.2/pwm_test_";
+	char buf2[50] = "/sys/devices/ocp.3/pwm_test_";
 
 	//build file path
 	sprintf(buf,"%i",helpnum);
@@ -769,7 +769,7 @@ int readADC(int helpnum, char* ach)
 	FILE *aval;
 	int value;
 	char buf[5];
-	char buf2[50] = "/sys/devices/ocp.2/helper.";
+	char buf2[50] = "/sys/devices/ocp.3/helper.";
 
 	//build file path to read adc
 	sprintf(buf,"%i",helpnum);

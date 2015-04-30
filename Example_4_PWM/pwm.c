@@ -16,16 +16,18 @@ int main()
 	int pulso = 1760*10000;
 
 	pwm = fopen("/sys/devices/bone_capemgr.9/slots", "w");
-	fseek(pwm,0,SEEK_SET);
+	/*fseek(pwm,0,SEEK_SET);
 	fprintf(pwm,"am33xx_pwm");
 	fflush(pwm);
 	
 	fprintf(pwm,"bone_pwm_P8_13");
 	fflush(pwm);
-
-	period = fopen("/sys/devices/ocp.3/pwm_test_P8_13.12/period", "w");
-	duty = fopen("/sys/devices/ocp.3/pwm_test_P8_13.12/duty", "w");
-	run = fopen("/sys/devices/ocp.3/pwm_test_P8_13.12/run", "w");
+*/
+	char buf[0x100];
+	snprintf(buf, sizeof(buf), "/sys/devices/ocp.3/pwm_test_P8_13.%d/period",11);
+	period = fopen(buf,"w");//fopen("/sys/devices/ocp.3/pwm_test_P8_13.#/period", "w");
+	duty = fopen("/sys/devices/ocp.3/pwm_test_P8_13.11/duty", "w");
+	run = fopen("/sys/devices/ocp.3/pwm_test_P8_13.11/run", "w");
 
 	int dir = 0;
 	pulso = 1760;
