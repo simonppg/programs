@@ -1,0 +1,47 @@
+/dts-v1/;
+
+/ {
+	compatible = "ti,beaglebone", "ti,beaglebone-black";
+	part-number = "BB-ADC";
+	exclusive-use = "P9.39", "P9.40", "P9.37", "P9.38", "P9.33", "P9.36", "P9.35", "tscadc";
+
+	fragment@0 {
+		target = <0xdeadbeef>;
+
+		__overlay__ {
+			#address-cells = <0x1>;
+			#size-cells = <0x1>;
+
+			tscadc {
+				compatible = "ti,ti-tscadc";
+				reg = <0x44e0d000 0x1000>;
+				interrupt-parent = <0xdeadbeef>;
+				interrupts = <0x10>;
+				ti,hwmods = "adc_tsc";
+				status = "okay";
+
+				adc {
+					ti,adc-channels = <0x0 0x1 0x2 0x3 0x4 0x5 0x6 0x7>;
+				};
+			};
+
+			helper {
+				compatible = "bone-iio-helper";
+				vsense-name = "AIN0", "AIN1", "AIN2", "AIN3", "AIN4", "AIN5", "AIN6", "AIN7";
+				vsense-scale = <0x64 0x64 0x64 0x64 0x64 0x64 0x64 0x64>;
+				status = "okay";
+				linux,phandle = <0x1>;
+				phandle = <0x1>;
+			};
+		};
+	};
+
+	__symbols__ {
+		test_helper = "/fragment@0/__overlay__/helper";
+	};
+
+	__fixups__ {
+		ocp = "/fragment@0:target:0";
+		intc = "/fragment@0/__overlay__/tscadc:interrupt-parent:0";
+	};
+};
