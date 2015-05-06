@@ -1,0 +1,41 @@
+
+ARMGNU ?= arm-none-eabi
+
+#COPS = -Wall -O2 -nostdlib -nostartfiles -ffreestanding
+COPS = -O2 -nostdlib -nostartfiles -ffreestanding 
+
+#gcc: uartx01.hex uartx01.bin
+
+all: pub.elf sub.elf
+
+clean:
+	rm -f *.o
+	rm -f *.bin
+	rm -f *.hex
+	rm -f *.elf
+	rm -f *.list
+	rm -f *.img
+	rm -f *.bc
+	rm -f *.clang.opt.s
+
+serializacion.o: serializacion.c
+	$(ARMGNU)-gcc $(COPS) -c serializacion.c -o serializacion.o
+
+pub.o: pub.c
+	$(ARMGNU)-gcc $(COPS) -c pub.c -o pub.o
+
+sub.o: sub.c
+	$(ARMGNU)-gcc $(COPS) -c sub.c -o sub.o
+
+pub.elf: serializacion.o pub.o
+	$(ARMGNU)-ld serializacion.o pub.o -o pub.elf
+	$(ARMGNU)-objdump -D pub.elf > pub.list
+
+sub.elf: serializacion.o sub.o
+	$(ARMGNU)-ld serializacion.o sub.o -o sub.elf
+	$(ARMGNU)-objdump -D sub.elf > sub.list
+
+kernel.img: bootloader.elf
+	$(ARMGNU)-objcopy bootloader.elf -O binary kernel.img
+	$(ARMGNU)-objcopy bootloader.elf -O binary bootloader.bin
+	$(ARMGNU)-objcopy bootloader.elf -O ihex bootloader.hex

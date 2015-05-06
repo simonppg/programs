@@ -3,22 +3,41 @@
  */
 
 #include <dirent.h> 
-#include <stdio.h> 
+#include <stdio.h>
+
+
+
 
 int main(void)
 {
-  DIR           *d;
-  struct dirent *dir;
-  d = opendir(".");
-  if (d)
-  {
-    while ((dir = readdir(d)) != NULL)
+
+
+    enum FRUIT_ENUM {
+        apple, orange, grape, banana,
+    };
+
+    static const char *FRUIT_STRING[] = {
+        "apple", "orange", "grape", "banana",
+    };
+    
+
+    printf("enum apple as a string: %s\n",FRUIT_STRING[orange]);
+
+
+
+
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(".");
+    if (d)
     {
-      printf("%s\n", dir->d_name);
+        while ((dir = readdir(d)) != NULL)
+        {
+            printf("%s\n", dir->d_name);
+        }
+
+        closedir(d);
     }
 
-    closedir(d);
-  }
-
-  return(0);
+    return(0);
 }
