@@ -10,7 +10,7 @@ int main(int argc, char const *argv[])
 	ppp = 1.8;
 	ppr = 360/ppp; 
 
-	rpm = 500;
+	rpm = 400;
 	frequency = (rpm/60)*ppr;
 	printf("\nfreq: %d",frequency);
 	printf("\nrpm: %d",rpm);
