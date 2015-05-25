@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+enum FIFO {
+    WAITING, MOVING
+};
+
+static const char *FIFO_STRING[] = {
+	"WAITING", "MOVING"
+};
+
 typedef struct {
 	int x, y;
 	struct Point *next;
@@ -44,7 +52,7 @@ int moveToPoint(Point * p)
 	else {
 		if(enqueue() == 0) {
 			//calcular tiempo restante
-			return remaining_time;
+			return 10;//remaining_time;
 		}
 		else {
 			return -1;
@@ -53,14 +61,14 @@ int moveToPoint(Point * p)
 }
 
 int move_now(Point * p) {
-	if(getMoving() == Waiting){
-		setMoving(Moving);
+	if(getMoving() == WAITING){
+		setMoving(MOVING);
 		sleep(5); //Espera a que puede mandar otra posicion al servo
 		//TODO calcular el tiempo que debe esperar tomando en cuenta:
 		//el tiempo que le toma al servo en moverse
 		//el tiempo de planificacion de esta tarea
 		//considerar tambien el posible retraso que se genere al escribir en los archivos de Linux
-		setMoving(Waiting);
+		setMoving(WAITING);
 		return 0;
 	}
 	return -1;
@@ -83,3 +91,12 @@ int show_point(Point *p)
 		printf("(%d,%d)", p->x, p->y);
 }
 
+int is_Fifo_Empty(Fifo fifo){
+
+}
+
+int enqueue(){}
+
+int setMoving(){}
+
+int getMoving(){}
