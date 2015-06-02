@@ -9,8 +9,8 @@
 
 CC=gcc
 DEPS =libBBB.c
-SOURCES= pwm.c pwmwithlib.c
-EXECUTABLE = pwm pwmwithlib
+SOURCES= pwm.c pwmwithlib.c test.c test-class.c
+EXECUTABLE = pwm pwmwithlib test test-class
 
 all: $(EXECUTABLE)
 
