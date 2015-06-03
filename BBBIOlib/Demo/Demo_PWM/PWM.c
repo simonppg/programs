@@ -26,9 +26,6 @@ int main(void)
 			if(pulso <= 2.5)
 				dir = 0;
 		}
-		pwm_disable(BBBIO_PWMSS0);
-		pwm_disable(BBBIO_PWMSS1);
-		pwm_disable(BBBIO_PWMSS2);
 		BBBIO_PWMSS_Setting(BBBIO_PWMSS0, 50.0f, pulso, 50.0);
 		BBBIO_PWMSS_Setting(BBBIO_PWMSS1, 50.0f, pulso, 50.0);
 		BBBIO_PWMSS_Setting(BBBIO_PWMSS2, 50.0f, pulso, 50.0);
