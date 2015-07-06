@@ -1,54 +1,59 @@
-#include <stdio.h>
-#include <stdlib.h>
+/* Very simple queue
+ * These are FIFO queues which discard the new data when full.
+ *
+ * Queue is empty when in == out.
+ * If in != out, then 
+ *  - items are placed into in before incrementing in
+ *  - items are removed from out before incrementing out
+ * Queue is full when in == (out-1 + QUEUE_SIZE) % QUEUE_SIZE;
+ *
+ * The queue will hold QUEUE_ELEMENTS number of items before the
+ * calls to QueuePut fail.
+ */
+ #include <stdlib.h>
+ #include <stdio.h>
 
 typedef struct {
 	int x, y;
 } Point;
 
-typedef struct node_{
-	Point *point;
-	struct node_ *next;
-} Queue;
+/* Queue structure */
+#define QUEUE_ELEMENTS 20
+#define QUEUE_SIZE (QUEUE_ELEMENTS + 1)
+Point *Queue[QUEUE_SIZE];
+int QueueIn, QueueOut;
 
-Queue * enqueue(Queue *queue, Point * point) {
-	Queue *new_node, *p;
-	new_node = malloc(sizeof(Queue));
-	new_node->point = point;
-	new_node->next = NULL;
-	p = queue;
-	while(p->next != NULL) {
-		p = p->next;
-	}
-	p->next = new_node;
-	p = new_node;
-	return (queue);
-}
-Queue * dequeue(Queue *queue) {
-	Queue *p;
-	p = queue;
-
-	if(p->next->point != NULL p->next->next) {
-		p->next = p->next->next;
-		p->point = p->next->point;
-	}
-
-	return (queue);
-}
-
-int show_point(Point *p)
+void QueueInit(void)
 {
-	if(p != NULL)
-		printf("(%d,%d) -> ", p->x, p->y);
-	return 0;
+    QueueIn = QueueOut = 0;
 }
 
-void display(Queue *queue)
+int QueuePut(Point *new)
 {
-	Queue *temp;
-	for(temp=queue->next;temp!=NULL;temp=temp->next) {
-		show_point(temp->point);
-	}
-	printf("null \n");
+    if(QueueIn == (( QueueOut - 1 + QUEUE_SIZE) % QUEUE_SIZE))
+    {
+        return -1; /* Queue Full*/
+    }
+
+    Queue[QueueIn] = new;
+
+    QueueIn = (QueueIn + 1) % QUEUE_SIZE;
+
+    return 0; // No errors
+}
+
+int QueueGet(Point **old)
+{
+    if(QueueIn == QueueOut)
+    {
+        return -1; /* Queue Empty - nothing to get*/
+    }
+
+    *old = Queue[QueueOut];
+
+    QueueOut = (QueueOut + 1) % QUEUE_SIZE;
+
+    return 0; // No errors
 }
 
 Point * new_point(int x, int y)
@@ -62,27 +67,92 @@ Point * new_point(int x, int y)
 	return p;
 }
 
-int main(void){
+int show_point(Point *p)
+{
+	if(p != NULL)
+		printf("(%d,%d) -> ", p->x, p->y);
+	return 0;
+}
 
-	Queue *queue;
-	queue = malloc(sizeof(Queue));
-	queue->next = NULL;
-	queue = enqueue(queue, new_point(5,10));
-	queue = enqueue(queue, new_point(7,15));
-	queue = enqueue(queue, new_point(15,80));
-	queue = enqueue(queue, new_point(4,60));
-	queue = enqueue(queue, new_point(9,10));
-	display(queue);
-	queue = dequeue(queue);
-	display(queue);
-	queue = dequeue(queue);
-	display(queue);
-	queue = dequeue(queue);
-	display(queue);
-	queue = dequeue(queue);
-	display(queue);
-	queue = dequeue(queue);
-	display(queue);
-	queue = dequeue(queue);
-	display(queue);
+int main(int argc, char const *argv[])
+{
+	Point *a;
+	if(QueuePut(new_point(0,10)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(1,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(2,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(3,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(4,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(5,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(6,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(7,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(8,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(9,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(10,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(11,9)) == -1)
+		printf("\nFull fifo");
+	if(QueuePut(new_point(12,9)) == -1)
+		printf("\nFull fifo");
+
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+	if(QueueGet(&a) == -1)
+		printf("\nEmpty fifo");
+	else
+		show_point(a);
+
+	printf("\n");
+	return 0;
 }
