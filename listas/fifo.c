@@ -1,143 +1,180 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include  <stdio.h>
+#include  <stdlib.h>
+#include  <string.h>
 
-enum FIFO {
-	WAITING, MOVING
-};
-
-static const char *FIFO_STRING[] = {
-	"WAITING", "MOVING"
-};
-
-typedef struct {
-	int x, y;
-	//struct Point *next;
-} Point;
-
-typedef struct {
-	Point *point; 		//set Points
-	Point *next; 		//move to Point with delay
-} Nodo;
-
-typedef struct {
-	Nodo *input; 		//set Points
-	Nodo *output; 		//move to Point with delay
-} Fifo;
-
-Point * new_point(int x, int y);
-int show_point(Point *p);
-int moveToPoint(Point * p);
-int move_now();
-int enqueue();
-int dequeue();
-
-Fifo fifo = {NULL, NULL};
-
-int main(int argc, char const *argv[])
+struct Point
 {
-	moveToPoint(new_point(5,10));
-	moveToPoint(new_point(7,15));
-	moveToPoint(new_point(15,80));
-	moveToPoint(new_point(4,60));
-	moveToPoint(new_point(9,10));
+	int x;
+	float y;
+	struct Point* next;
+};
 
-	show_fifo(fifo);
+struct my_list
+{
+  struct Point* head;
+  struct Point* tail;
+};
 
-	/*show_point(new_point(5,10));
-	show_point(new_point(7,15));
-	show_point(new_point(15,80));
-	show_point(new_point(4,60));
-	show_point(new_point(9,10));*/
+struct my_list* list_add_element( struct my_list*, const int, const float);
+struct my_list* list_remove_element( struct my_list*);
 
-	//Aqui debe haber dos tareas (productor, consumidor)
-	//productor: envia una serie de puntos para que el brazo se mueva y debe asegurarse de que se hayan recibido todos los puntos
-	//consumidor: mueve los motores repetando los tiempos que le toma a motor procesar la señal
+struct my_list* list_new(void);
+struct my_list* list_free( struct my_list* );
 
-	printf("\n");
+void list_print( const struct my_list* );
+void list_print_element(const struct Point* );
+
+int main(void)
+{
+	struct my_list*  mt = NULL;
+
+	mt = list_new();
+	list_add_element(mt, 1, 10);
+	list_add_element(mt, 2, 9);
+	list_add_element(mt, 3, 8);
+	list_add_element(mt, 4, 7); 
+
+	list_print(mt);
+
+	list_remove_element(mt);
+	list_print(mt);
+
+	list_free(mt);   /* always remember to free() the malloc()ed memory */
+	free(mt);        /* free() if list is kept separate from free()ing the structure, I think its a good design */
+	mt = NULL;      /* after free() always set that pointer to NULL, C will run havon on you if you try to use a dangling pointer */
+
+	list_print(mt);
+
 	return 0;
 }
 
-int moveToPoint(Point * p)
+/* Will always return the pointer to my_list */
+struct my_list* list_add_element(struct my_list* s, const int x, const float y)
 {
-	if(is_Fifo_Empty(fifo)) {
-		move_now(p);
-	}
-	else {
-		if(enqueue(fifo, p) == 0) {
-			//calcular tiempo restante
-			return 10;//remaining_time;
-		}
-		else {
-			return -1;
-		}
-	}
-}
+	struct Point* p = malloc( 1 * sizeof(*p) );
 
-int move_now(Point * p) {
-	if(getMoving() == WAITING) {
-		setMoving(MOVING);
-		sleep(5); //Espera a que puede mandar otra posicion al servo
-		//TODO calcular el tiempo que debe esperar tomando en cuenta:
-		//el tiempo que le toma al servo en moverse
-		//el tiempo de planificacion de esta tarea
-		//considerar tambien el posible retraso que se genere al escribir en los archivos de Linux
-		setMoving(WAITING);
-		return 0;
-	}
-	return -1;
-}
-
-Point * new_point(int x, int y)
-{
-	Point *p;
-	if((p = malloc(sizeof *p)) != NULL)
+	if( NULL == p )
 	{
-		p->x = x;
-		p->y = y;
+		fprintf(stderr, "IN %s, %s: malloc() failed\n", __FILE__, "list_add");
+		return s; 
 	}
+
+	p->x = x;
+	p->y = y;
+	p->next = NULL;
+
+
+	if( NULL == s )
+	{
+		printf("Queue not initialized\n");
+		free(p);
+		return s;
+	}
+	else if( NULL == s->head && NULL == s->tail )
+	{
+		/* printf("Empty list, adding p->num: %d\n\n", p->num);  */
+		s->head = s->tail = p;
+		return s;
+	}
+	else if( NULL == s->head || NULL == s->tail )
+	{
+		fprintf(stderr, "There is something seriously wrong with your assignment of head/tail to the list\n");
+		free(p);
+		return NULL;
+	}
+	else
+	{
+		/* printf("List not empty, adding element to tail\n"); */
+		s->tail->next = p;
+		s->tail = p;
+	}
+
+	return s;
+}
+ 
+/* This is a queue and it is FIFO, so we will always remove the first element */
+struct my_list* list_remove_element( struct my_list* s )
+{
+	struct Point* h = NULL;
+	struct Point* p = NULL;
+
+	if( NULL == s )
+	{
+		printf("List is empty\n");
+		return s;
+	}
+	else if( NULL == s->head && NULL == s->tail )
+	{
+		printf("Well, List is empty\n");
+		return s;
+	}
+	else if( NULL == s->head || NULL == s->tail )
+	{
+		printf("There is something seriously wrong with your list\n");
+		printf("One of the head/tail is empty while other is not \n");
+		return s;
+	}
+
+	h = s->head;
+	p = h->next;
+	free(h);
+	s->head = p;
+	if( NULL == s->head )  s->tail = s->head;   /* The element tail was pointing to is free(), so we need an update */
+
+	return s;
+}
+   
+ 
+/* ---------------------- small helper fucntions ---------------------------------- */
+struct my_list* list_free( struct my_list* s )
+{
+	while( s->head )
+	{
+		list_remove_element(s);
+	}
+
+	return s;
+}
+ 
+struct my_list* list_new(void)
+{
+	struct my_list* p = malloc( 1 * sizeof(*p));
+
+	if( NULL == p )
+	{
+		fprintf(stderr, "LINE: %d, malloc() failed\n", __LINE__);
+	}
+
+	p->head = p->tail = NULL;
+
 	return p;
 }
-
-int show_point(Point *p)
+ 
+ 
+void list_print( const struct my_list* ps )
 {
-	if(p != NULL)
-		printf("(%d,%d)", p->x, p->y);
-	return 0;
-}
+	struct Point* p = NULL;
 
-//0 if fifo is empty
-int is_Fifo_Empty(Fifo *fifo) {
-	/*if(fifo->input == NULL && fifo->output == NULL)
-		return 1;*/
-	return 0;
-}
-
-int enqueue(Fifo fifo, Point *p) {
-	Fifo *new_node, *p;
-
-    new_node = malloc(sizeof(Nodo));
-    new_node->point = p;
-    new_node->next = NULL;
-
-    if (!fifo)
-        return new_node;
-
-    p = fifo;
-    while (p->next)
-        p = p->next;
-    p->next = new_node;
-}
-
-int setMoving(){}
-
-int getMoving(){}
-
-int show_fifo(Fifo *fifo)
-{
-	Nodo *nodo = fifo->output;
-	while(nodo->next != NULL){
-		show_point(nodo->point);
-		nodo->point = nodo->next;
+	if( ps )
+	{
+		for( p = ps->head; p; p = p->next )
+		{
+			list_print_element(p);
+		}
 	}
-	return 0;
+
+	printf("------------------\n");
+}
+ 
+ 
+void list_print_element(const struct Point* p )
+{
+	if( p ) 
+	{
+		printf("(%d,%.4f) -> ", p->x, p->y);
+	}
+	else
+	{
+		printf("Can not print NULL struct \n");
+	}
 }
