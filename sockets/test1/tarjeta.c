@@ -22,7 +22,7 @@ static int n;
 static float ph;
 
 int main() {
-	ph = 0;
+	ph = 1;
 	if(init_net() == 0) {
 		printf("init_net\n");
 		while(1) {
@@ -31,9 +31,10 @@ int main() {
 				printf("while escucha init\n");
 				while(1) {
 					printf("\n");
-					sensar();
+					//sensar();
 					enviar();
 					sleep(1);
+					recibir();					
 				}
 				printf("while escucha end\n");
 			}
@@ -87,19 +88,21 @@ int close_net() {
 
 int recibir() {
 	bzero(buffer, 256);
-	n = read(newsockfd, buffer, 255);
+	//n = read(newsockfd, buffer, 255);
+	n = read(newsockfd, &ph, sizeof(float));
 	if (n < 0){
-		printf("ERROR reading from socket");
-		return -1;
+		printf(" ERROR reading from socket");
 	}
-	printf("Here is the message: %s\n", buffer);
+	//printf("Here is the message: %s\n", buffer);
+	printf("Here is the message: %.4f\n", ph);
 	return 0;
 }
 
 int enviar() {
 	printf("Send ph: %.4f", ph);
-	n = write(newsockfd, "I got your message", 18);
-	//n = write(newsockfd, &ph, sizeof(float));
+	//n = write(newsockfd, "I got your message", 18);
+	n = write(newsockfd, &ph, sizeof(float));
+	//n = send(sockfd, &ph, sizeof(float),0);
 	
 	if (n < 0){
 		printf("ERROR writing to socket");
@@ -109,7 +112,7 @@ int enviar() {
 }
 
 int sensar() {
-	ph++;
+	//ph++;
 	return 0;
 }
 
