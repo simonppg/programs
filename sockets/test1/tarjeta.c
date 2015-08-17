@@ -19,10 +19,12 @@ static socklen_t clilen;
 static char buffer[256];
 static struct sockaddr_in serv_addr, cli_addr;
 static int n;
-static float ph;
+static unsigned int ph;
+static unsigned int maxInt;
 
 int main() {
-	ph = 1;
+	maxInt = 2147483647;
+	ph = 63;
 	if(init_net() == 0) {
 		printf("init_net\n");
 		while(1) {
@@ -32,9 +34,9 @@ int main() {
 				while(1) {
 					printf("\n");
 					//sensar();
-					enviar();
+					//enviar();
 					sleep(1);
-					recibir();					
+					recibir();
 				}
 				printf("while escucha end\n");
 			}
@@ -89,19 +91,45 @@ int close_net() {
 int recibir() {
 	bzero(buffer, 256);
 	//n = read(newsockfd, buffer, 255);
-	n = read(newsockfd, &ph, sizeof(float));
+	n = read(newsockfd, &ph, sizeof(int));
 	if (n < 0){
-		printf(" ERROR reading from socket");
+		printf("ERROR reading from socket\n");
 	}
-	//printf("Here is the message: %s\n", buffer);
-	printf("Here is the message: %.4f\n", ph);
+	/*printf("Here is %d the message: %s\n", n, buffer);
+	//[34],[31],[23]
+
+	int b = n;
+	while(n >= 0) {
+		if(buffer[n] == 0x34 && buffer[n-1] == 0x31 && buffer[n-2] == 0x23){
+			n=n-3;
+			printf(" ");
+		}
+		printf("[%c],", buffer[n]);
+		n--;
+	}
+	printf("\n");
+	printf("\n");
+	while(b >= 0) {
+		if(buffer[b] == 0x34 && buffer[b-1] == 0x31 && buffer[b-2] == 0x23){
+			b=b-3;
+			printf(" ");
+		}
+		printf("[%x],", buffer[b]);
+		b--;
+	}*/
+
+	//printf("\n");
+	//exit(1);
+
+
+	printf("Here is %d the message: %d\n", n, ph);
 	return 0;
 }
 
 int enviar() {
-	printf("Send ph: %.4f", ph);
+	printf("Send ph: %d\n", ph);
 	//n = write(newsockfd, "I got your message", 18);
-	n = write(newsockfd, &ph, sizeof(float));
+	n = write(newsockfd, &ph, sizeof(int));
 	//n = send(sockfd, &ph, sizeof(float),0);
 	
 	if (n < 0){
