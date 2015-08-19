@@ -90,12 +90,12 @@ int close_net() {
 
 int recibir() {
 	bzero(buffer, 256);
-	//n = read(newsockfd, buffer, 255);
-	n = read(newsockfd, &ph, sizeof(int));
+	n = read(newsockfd, buffer, 255);
+	//n = read(newsockfd, &ph, sizeof(int));
 	if (n < 0){
 		printf("ERROR reading from socket\n");
 	}
-	/*printf("Here is %d the message: %s\n", n, buffer);
+	//printf("Here is %d the message: %s\n", n, buffer);
 	//[34],[31],[23]
 
 	int b = n;
@@ -116,10 +116,10 @@ int recibir() {
 		}
 		printf("[%x],", buffer[b]);
 		b--;
-	}*/
+	}
 
-	//printf("\n");
-	//exit(1);
+	printf("\n");
+	exit(1);
 
 
 	printf("Here is %d the message: %d\n", n, ph);
