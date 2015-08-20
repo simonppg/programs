@@ -1,0 +1,20 @@
+function Dato=fcn(Pulso,Contador,control1,control2,control3,control4,control5,control6)
+if (Pulso>0)&&(Contador==0)
+Dato=-1;
+elseif (Pulso>0)&&(Contador==1) % pulso para alertar al μC de nueva trama
+Dato=control1;
+elseif (Pulso>0)&&(Contador==2) % condición de envío de canal de control 1
+Dato=control2;
+elseif (Pulso>0)&&(Contador==3) % condición de envío de canal de control 2
+Dato=control3;
+elseif (Pulso>0)&&(Contador==4) % condición de envío de canal de control 3
+Dato=control4;
+elseif (Pulso>0)&&(Contador==5) % condición de envío de canal de control 4
+Dato=control5;
+elseif (Pulso>0)&&(Contador==6) % condición de envío de canal de control 5
+Dato=control6;
+elseif (Pulso>0)&&(Contador==7) % condición de envío de canal de control 5
+Dato=-2;
+else
+Dato=-1; % pulso de sincronización para el microcontrolador
+end

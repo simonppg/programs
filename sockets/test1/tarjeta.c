@@ -5,6 +5,21 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <math.h>
+
+#define BUFFER_SIZE 		256
+#define ELEMENTS_IN_TRAMA 	6
+#define ELEMENTS_SIZE 		7
+
+typedef unsigned char 			uint8_t;
+
+static int sockfd, newsockfd, portno=10000;
+static socklen_t clilen;
+static uint8_t buffer[BUFFER_SIZE];
+static struct sockaddr_in serv_addr, cli_addr;
+static int n;
+static unsigned int ph;
+static unsigned int maxInt;
 
 int init_net();
 int escucha();
@@ -13,14 +28,12 @@ int sensar();
 int recibir();
 int enviar();
 int actuar();
-
-static int sockfd, newsockfd, portno=10000;
-static socklen_t clilen;
-static char buffer[256];
-static struct sockaddr_in serv_addr, cli_addr;
-static int n;
-static unsigned int ph;
-static unsigned int maxInt;
+int buscaTrama(uint8_t *buffer, int size, int *begin, int *end);
+static float getFloat(uint32_t int32);
+static uint16_t from8To16(uint8_t msb, uint8_t lsb);
+static uint32_t from16to32(uint16_t msb, uint16_t lsb);
+static int beginTrama(uint8_t *buffer, int i);
+static int endTrama(uint8_t *buffer, int i);
 
 int main() {
 	maxInt = 2147483647;
@@ -61,7 +74,7 @@ int init_net(){
 	serv_addr.sin_port = htons(portno);
 
 	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
-		printf("ERROR on binding");
+		printf("ERROR on binding\n");
 		return -1;
 	}
 	listen(sockfd, 5);
@@ -96,33 +109,51 @@ int recibir() {
 		printf("ERROR reading from socket\n");
 	}
 	//printf("Here is %d the message: %s\n", n, buffer);
-	//[34],[31],[23]
 
-	int b = n;
+	printf("Datos leidos: %d\n", n);
+
+	int noRecv = n;
+
 	while(n >= 0) {
-		if(buffer[n] == 0x34 && buffer[n-1] == 0x31 && buffer[n-2] == 0x23){
-			n=n-3;
-			printf(" ");
+		if(buffer[n] == 0x34 &&
+			buffer[n - 1] == 0x31 &&
+			buffer[n - 2] == 0x23 &&
+			buffer[n - 3] == 0x0) {
+			n = n - 4;
+			printf("\n");
 		}
-		printf("[%c],", buffer[n]);
+		printf("[%x],", buffer[n]);
 		n--;
 	}
+
 	printf("\n");
 	printf("\n");
-	while(b >= 0) {
-		if(buffer[b] == 0x34 && buffer[b-1] == 0x31 && buffer[b-2] == 0x23){
-			b=b-3;
-			printf(" ");
-		}
-		printf("[%x],", buffer[b]);
-		b--;
+	int inicio;
+	int fin;
+	int result;
+	if((result  = buscaTrama(buffer, noRecv, &inicio, &fin)) == 0 ) {
+		printf("Hay una trama desde %d hasta %d, %d\n", inicio, fin, fin - inicio);
+		int elementos = (fin - inicio - 7) / ELEMENTS_SIZE;
+		printf("Elementos en la trama: %d\n", elementos);
 	}
 
+	uint8_t a, b, c, d;
+	a=0xfe;
+	b=0xdc;
+	c=0xba;
+	d=0x21;
+	uint16_t int16a = from8To16(a,b);
+	uint16_t int16b = from8To16(c,d);
+	uint32_t int32 = from16to32(int16a, int16b);
+	float floata = getFloat(int32);
+
+	printf("16a: %x\n", int16a);
+	printf("16b: %x\n", int16b);
+	printf("32: %x\n", int32);
+	printf("float: %f\n", floata);
+
 	printf("\n");
-	exit(1);
-
-
-	printf("Here is %d the message: %d\n", n, ph);
+	exit(1);	
 	return 0;
 }
 
@@ -146,4 +177,85 @@ int sensar() {
 
 int actuar() {
 	return 0;
+}
+
+int buscaTrama(uint8_t *buffer, int size, int *begin, int *end) {
+	int i;
+	for (i = 0; i < size; ++i)
+	{
+		if(beginTrama(buffer, i) == 0) {
+			printf(" begin\n");
+			*begin = i;
+		}
+		else if(endTrama(buffer, i) == 0) {
+			printf(" end\n");
+			*end = i;
+			return 0;
+		}
+		else if(buffer[i] == 0x34){
+			printf("[%x],\n", buffer[i]);
+		}
+		else {
+			printf("[%x],", buffer[i]);
+		}
+	}
+	return -1;
+}
+
+int beginTrama(uint8_t *buffer, int i) {
+	if(i+6 > BUFFER_SIZE)
+		return -1;
+	if(buffer[i] == 0xbf &&
+		buffer[i + 1] == 0x80 &&
+		buffer[i + 2] == 0x0 &&
+		buffer[i + 3] == 0x0 &&
+		buffer[i + 4] == 0x23 &&
+		buffer[i + 5] == 0x31 &&
+		buffer[i + 6] == 0x34)
+		return 0;
+	return -1;
+}
+
+static int endTrama(uint8_t *buffer, int i) {
+	if(i+6 > BUFFER_SIZE)
+		return -1;
+	if(buffer[i] == 0xc0 &&
+		buffer[i + 1] == 0x0 &&
+		buffer[i + 2] == 0x0 &&
+		buffer[i + 3] == 0x0 &&
+		buffer[i + 4] == 0x23 &&
+		buffer[i + 5] == 0x31 &&
+		buffer[i + 6] == 0x34)
+		return 0;
+	return -1;
+}
+
+static float getFloat(uint32_t int32)
+{
+	float valor;
+	uint32_t s, e, m;
+	s = e = m = 0;
+	s = (int32 & 0x80000000) >> 31;
+	e = (int32 & 0x7F800000) >> 23;
+	m = (int32 & 0x007FFFFF);
+	valor = pow(-1,s)*(1.0+m/pow(2,23))*pow(2,(e-127));
+	return valor;
+}
+
+static uint16_t from8To16(uint8_t msb, uint8_t lsb)
+{
+	uint16_t valor;
+	valor = msb;
+	valor = valor << 8;
+	valor = valor + lsb;
+	return valor;
+}
+
+static uint32_t from16to32(uint16_t msb, uint16_t lsb)
+{
+	uint32_t valor;
+	valor = msb;
+	valor = valor << 16;
+	valor = valor + lsb;
+	return valor;
 }
