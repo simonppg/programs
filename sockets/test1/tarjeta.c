@@ -8,7 +8,7 @@
 #include <math.h>
 
 #define BUFFER_SIZE 		256
-#define ELEMENTS_IN_TRAMA 	6
+#define ELEMENTS_IN_TRAMA 	8*2 	//8 pares de datos (clave, setPoint)
 #define ELEMENTS_SIZE 		7
 
 typedef unsigned char 			uint8_t;
@@ -16,6 +16,7 @@ typedef unsigned char 			uint8_t;
 static int sockfd, newsockfd, portno=10000;
 static socklen_t clilen;
 static uint8_t buffer[BUFFER_SIZE];
+static float setPoints[ELEMENTS_IN_TRAMA];
 static struct sockaddr_in serv_addr, cli_addr;
 static int n;
 static unsigned int ph;
@@ -134,23 +135,21 @@ int recibir() {
 	if((result  = buscaTrama(buffer, noRecv, &inicio, &fin)) == 0 ) {
 		printf("Hay una trama desde %d hasta %d, %d\n", inicio, fin, fin - inicio);
 		int elementos = (fin - inicio - 7) / ELEMENTS_SIZE;
-		printf("Elementos en la trama: %d\n", elementos);
+		int resuduo = (fin - inicio - 7) % ELEMENTS_SIZE;
+		printf("Elementos en la trama: %d, resuduo: %d\n", elementos, resuduo);
+		if(resuduo == 0)
+		{
+			bzero(setPoints, ELEMENTS_IN_TRAMA);
+			getSetPoints(setPoints, buffer, elementos, inicio);
+			int count = 0;
+			while(count < elementos) {
+				printf("[%f], ", setPoints[count]);
+				if((count % 2) != 0)
+					printf("\n");
+				count++;
+			}
+		}
 	}
-
-	uint8_t a, b, c, d;
-	a=0xfe;
-	b=0xdc;
-	c=0xba;
-	d=0x21;
-	uint16_t int16a = from8To16(a,b);
-	uint16_t int16b = from8To16(c,d);
-	uint32_t int32 = from16to32(int16a, int16b);
-	float floata = getFloat(int32);
-
-	printf("16a: %x\n", int16a);
-	printf("16b: %x\n", int16b);
-	printf("32: %x\n", int32);
-	printf("float: %f\n", floata);
 
 	printf("\n");
 	exit(1);	
@@ -200,6 +199,26 @@ int buscaTrama(uint8_t *buffer, int size, int *begin, int *end) {
 		}
 	}
 	return -1;
+}
+
+int getSetPoints(float *setPoints, uint8_t *buffer, int noElementos, int begin) {
+	begin += 7;
+	int count = 0;
+	//float elementos[ELEMENTS_IN_TRAMA];
+	while(count < noElementos) {
+		setPoints[count] = getFloat(
+							from16to32(
+								from8To16(
+									buffer[begin + (ELEMENTS_SIZE * count)],
+									buffer[begin + (ELEMENTS_SIZE * count) + 1]),
+								from8To16(
+									buffer[begin + (ELEMENTS_SIZE * count) + 2],
+									buffer[begin + (ELEMENTS_SIZE * count) + 3])
+								)
+							);
+		count++;
+	}
+	return 0;
 }
 
 int beginTrama(uint8_t *buffer, int i) {
