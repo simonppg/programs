@@ -19,8 +19,12 @@ static uint8_t buffer[BUFFER_SIZE];
 static float setPoints[ELEMENTS_IN_TRAMA];
 static struct sockaddr_in serv_addr, cli_addr;
 static int n;
-static unsigned int ph;
-static unsigned int maxInt;
+static float temp;
+static float ph;
+static float orp;
+static float torque;
+static float biomasa;
+static float brix;
 
 int init_net();
 int escucha();
@@ -37,8 +41,6 @@ static int beginTrama(uint8_t *buffer, int i);
 static int endTrama(uint8_t *buffer, int i);
 
 int main() {
-	maxInt = 2147483647;
-	ph = 63;
 	if(init_net() == 0) {
 		printf("init_net\n");
 		while(1) {
@@ -48,9 +50,9 @@ int main() {
 				while(1) {
 					printf("\n");
 					//sensar();
-					//enviar();
+					//recibir();
+					enviar();
 					sleep(1);
-					recibir();
 				}
 				printf("while escucha end\n");
 			}
@@ -103,6 +105,7 @@ int close_net() {
 }
 
 int recibir() {
+	printf("Read\n");
 	bzero(buffer, 256);
 	n = read(newsockfd, buffer, 255);
 	//n = read(newsockfd, &ph, sizeof(int));
@@ -151,21 +154,66 @@ int recibir() {
 		}
 	}
 
+	printf("Read end\n");
 	printf("\n");
-	exit(1);	
+	//exit(1);	
 	return 0;
 }
 
 int enviar() {
-	printf("Send ph: %d\n", ph);
+	printf("Send: %.4f, %.4f, %.4f, %.4f, %.4f, %.4f\n",
+		temp, ph, orp,
+		torque, biomasa, brix);
 	//n = write(newsockfd, "I got your message", 18);
-	n = write(newsockfd, &ph, sizeof(int));
+	//n = write(newsockfd, &ph, sizeof(int));
 	//n = send(sockfd, &ph, sizeof(float),0);
+
+	float tramaSalida[14];
+	temp = 1;
+	ph = 2;
+	orp = 3;
+	torque = 4;
+	biomasa = 5;
+	brix = 6;
+
+	tramaSalida[0] = -1;
+	tramaSalida[1] = 1;
+	tramaSalida[2] = temp; 
+	tramaSalida[3] = 1; 
+	tramaSalida[4] = ph; 
+	tramaSalida[5] = 1;
+	tramaSalida[6] = orp;
+	tramaSalida[7] = 1;
+	tramaSalida[8] = torque;
+	tramaSalida[9] = 1;
+	tramaSalida[10] = biomasa;
+	tramaSalida[11] = 1;
+	tramaSalida[12] = brix;
+	tramaSalida[13] = -2;
+
+	uint8_t valortemp;
+	uint8_t valor;
+	uint32_t tramaSalidaBinblock[12];
+
+	//Esta funciono con binary
+	n = send(newsockfd, &tramaSalida, 14 * sizeof(float), MSG_NOSIGNAL);
+
+	/*valortemp = temp << 8
+	valor = (temp & 0xFF000000) >> 24;
+	tramaSalidaBinblock[]*/
+
+	/*n = send(sockfd, &temp, sizeof(float),0);
+	n = send(sockfd, &ph, sizeof(float),0);
+	n = send(sockfd, &orp, sizeof(float),0);
+	n = send(sockfd, &torque, sizeof(float),0);
+	n = send(sockfd, &biomasa, sizeof(float),0);
+	n = send(sockfd, &brix, sizeof(float),0);*/
 	
 	if (n < 0){
 		printf("ERROR writing to socket");
 		return -1;
 	}
+	printf("Send end\n");
 	return 0;
 }
 
