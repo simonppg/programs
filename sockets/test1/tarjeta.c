@@ -37,8 +37,12 @@ int buscaTrama(uint8_t *buffer, int size, int *begin, int *end);
 static float getFloat(uint32_t int32);
 static uint16_t from8To16(uint8_t msb, uint8_t lsb);
 static uint32_t from16to32(uint16_t msb, uint16_t lsb);
-static int beginTrama(uint8_t *buffer, int i);
-static int endTrama(uint8_t *buffer, int i);
+static int beginTramaBE(uint8_t *buffer, int i);
+static int endTramaBE(uint8_t *buffer, int i);
+static int beginTramaLE(uint8_t *buffer, int i);
+static int endTramaLE(uint8_t *buffer, int i);
+static int getSetPointsBE(float *setPoints, uint8_t *buffer, int noElementos, int begin);
+static int getSetPointsLE(float *setPoints, uint8_t *buffer, int noElementos, int begin);
 
 int main() {
 	if(init_net() == 0) {
@@ -48,11 +52,30 @@ int main() {
 			while(escucha() == 0) {
 				printf("while escucha init\n");
 				while(1) {
-					printf("\n");
+					//printf("\n");
 					//sensar();
-					recibir();
-					//enviar();
-					sleep(1);
+					int a = -1;
+					int intentos = 0;
+					while((a = enviar()) != 0) 
+					{
+						sleep(1);
+						/*if(intentos == 1)
+							break;
+						intentos++;*/
+					}
+					a = -1;
+					intentos = 0;
+					while((a = recibir()) != 0)
+					{
+						sleep(1);
+						/*if(intentos == 1)
+							break;
+						intentos++;*/
+					}
+					/*recibir();
+					enviar();
+					sleep(1);*/
+					//sleep(1);
 				}
 				printf("while escucha end\n");
 			}
@@ -105,64 +128,85 @@ int close_net() {
 }
 
 int recibir() {
-	printf("Read\n");
+	//printf("\nRead\n");
+	int noRecv = 0;
 	bzero(buffer, 256);
 	n = read(newsockfd, buffer, 255);
 	//n = read(newsockfd, &ph, sizeof(int));
 	if (n < 0){
-		printf("ERROR reading from socket\n");
+		//printf("ERROR reading from socket\n");
 	}
 	//printf("Here is %d the message: %s\n", n, buffer);
 
-	printf("Datos leidos: %d\n", n);
-
-	int noRecv = n;
+	noRecv = n;
 
 	while(n >= 0) {
 		if(buffer[n] == 0x34 &&
 			buffer[n - 1] == 0x31 &&
 			buffer[n - 2] == 0x23) {
 			n = n - 3;
-			printf("\n");
+			//printf("\n");
 		}
-		printf("%d[%x],", n, buffer[n]);
+		//printf("%d[%x],", n, buffer[n]);
 		n--;
 	}
 
-	printf("\n");
-	printf("\n");
+	//printf("\n");
+	//printf("\n");
+	printf("Datos leidos: %d\n", noRecv);
 	int inicio = 0;
 	int fin = 0;
 	int result;
 	if((result  = buscaTrama(buffer, noRecv, &inicio, &fin)) == 0 ) {
-		printf("Hay una trama desde %d hasta %d, %d\n", inicio, fin, fin - inicio);
+		//printf("Hay una trama desde %d hasta %d, %d\n", inicio, fin, fin - inicio);
 		int elementos = (fin - inicio - 7) / ELEMENTS_SIZE;
 		int resuduo = (fin - inicio - 7) % ELEMENTS_SIZE;
 		printf("Elementos en la trama: %d, resuduo: %d\n", elementos, resuduo);
 		if(resuduo == 0)
 		{
 			bzero(setPoints, ELEMENTS_IN_TRAMA);
-			getSetPoints(setPoints, buffer, elementos, inicio);
+			getSetPointsLE(setPoints, buffer, elementos, inicio);
 			int count = 0;
 			while(count < elementos) {
 				printf("[%f], ", setPoints[count]);
-				if((count % 2) != 0)
-					printf("\n");
+				if((count % 2) != 0){
+					//printf("\n");
+				}
 				count++;
 			}
+
+			/*int recorre1 = 0;
+			while(recorre1 <= noRecv) {
+				printf("[%x],", buffer[recorre1]);
+				recorre1++;
+			}*/
+			//exit(0);
+			return 0;
 		}
 	}
+	if(result == -1 && noRecv > 100) {
+		printf("result: %d, noRecv: %d\n", result, noRecv);
+		printf("%s\n", buffer);
+		
+		/*int recorre = 0;
+		while(recorre <= noRecv) {
+			printf("[%x],", buffer[recorre]);
+			recorre++;
+		}*/
 
-	printf("Read end\n");
-	printf("\n");
+		//exit(-1);
+	}
+
+	//printf("Read end\n");
+	//printf("\n");
 	//exit(1);	
-	return 0;
+	return -1;
 }
 
 int enviar() {
-	printf("Send: %.4f, %.4f, %.4f, %.4f, %.4f, %.4f\n",
+	/*printf("\nSend: %.4f, %.4f, %.4f, %.4f, %.4f, %.4f\n",
 		temp, ph, orp,
-		torque, biomasa, brix);
+		torque, biomasa, brix);*/
 	//n = write(newsockfd, "I got your message", 18);
 	//n = write(newsockfd, &ph, sizeof(int));
 	//n = send(sockfd, &ph, sizeof(float),0);
@@ -176,7 +220,7 @@ int enviar() {
 	brix = 6;
 
 	tramaSalida[0] = -1;
-	tramaSalida[1] = 1;
+	tramaSalida[1] = 300;
 	tramaSalida[2] = temp; 
 	tramaSalida[3] = 1; 
 	tramaSalida[4] = ph; 
@@ -208,11 +252,12 @@ int enviar() {
 	n = send(sockfd, &biomasa, sizeof(float),0);
 	n = send(sockfd, &brix, sizeof(float),0);*/
 	
+	//printf("Send end\n");
 	if (n < 0){
-		printf("ERROR writing to socket");
-		return -1;
+		//printf("ERROR writing to socket");
+		return 0;
 	}
-	printf("Send end\n");
+	
 	return 0;
 }
 
@@ -229,24 +274,24 @@ int buscaTrama(uint8_t *buffer, int size, int *begin, int *end) {
 	int i, hayInicio = 0, hayFin = 0;
 	for (i = 0; i < size; ++i)
 	{
-		if(beginTrama(buffer, i) == 0) {
-			printf(" begin\n");
+		if(beginTramaLE(buffer, i) == 0) {
+			//printf(" begin\n");
 			if(hayInicio == 0)
 				*begin = i;
 			hayInicio++;
 		}
-		else if(endTrama(buffer, i) == 0) {
-			printf(" end\n");
+		else if(endTramaLE(buffer, i) == 0) {
+			//printf(" end\n");
 			if(hayInicio == 1){
 				*end = i;
 				hayFin++;
 			}
 		}
 		else if(buffer[i] == 0x34){
-			printf("[%x],\n", buffer[i]);
+			//printf("[%x],\n", buffer[i]);
 		}
 		else {
-			printf("[%x],", buffer[i]);
+			//printf("[%x],", buffer[i]);
 		}
 		if(hayInicio == 1 && hayFin == 1)
 			return 0;
@@ -254,7 +299,7 @@ int buscaTrama(uint8_t *buffer, int size, int *begin, int *end) {
 	return -1;
 }
 
-int getSetPoints(float *setPoints, uint8_t *buffer, int noElementos, int begin) {
+int getSetPointsBE(float *setPoints, uint8_t *buffer, int noElementos, int begin) {
 	begin += 7;
 	int count = 0;
 	//float elementos[ELEMENTS_IN_TRAMA];
@@ -274,7 +319,27 @@ int getSetPoints(float *setPoints, uint8_t *buffer, int noElementos, int begin) 
 	return 0;
 }
 
-int beginTrama(uint8_t *buffer, int i) {
+int getSetPointsLE(float *setPoints, uint8_t *buffer, int noElementos, int begin) {
+	begin += 7;
+	int count = 0;
+	//float elementos[ELEMENTS_IN_TRAMA];
+	while(count < noElementos) {
+		setPoints[count] = getFloat(
+							from16to32(
+								from8To16(
+									buffer[begin + (ELEMENTS_SIZE * count) + 3],
+									buffer[begin + (ELEMENTS_SIZE * count) + 2]),
+								from8To16(
+									buffer[begin + (ELEMENTS_SIZE * count) + 1],
+									buffer[begin + (ELEMENTS_SIZE * count)])
+								)
+							);
+		count++;
+	}
+	return 0;
+}
+
+int beginTramaBE(uint8_t *buffer, int i) {
 	if(i+6 > BUFFER_SIZE)
 		return -1;
 	if(buffer[i] == 0xbf &&
@@ -288,13 +353,41 @@ int beginTrama(uint8_t *buffer, int i) {
 	return -1;
 }
 
-static int endTrama(uint8_t *buffer, int i) {
+static int endTramaBE(uint8_t *buffer, int i) {
 	if(i+6 > BUFFER_SIZE)
 		return -1;
 	if(buffer[i] == 0xc0 &&
 		buffer[i + 1] == 0x0 &&
 		buffer[i + 2] == 0x0 &&
 		buffer[i + 3] == 0x0 &&
+		buffer[i + 4] == 0x23 &&
+		buffer[i + 5] == 0x31 &&
+		buffer[i + 6] == 0x34)//-2
+		return 0;
+	return -1;
+}
+
+int beginTramaLE(uint8_t *buffer, int i) {
+	if(i+6 > BUFFER_SIZE)
+		return -1;
+	if(buffer[i] == 0x0 &&
+		buffer[i + 1] == 0x0 &&
+		buffer[i + 2] == 0x80 &&
+		buffer[i + 3] == 0xbf &&
+		buffer[i + 4] == 0x23 &&
+		buffer[i + 5] == 0x31 &&
+		buffer[i + 6] == 0x34)//-1
+		return 0;
+	return -1;
+}
+
+static int endTramaLE(uint8_t *buffer, int i) {
+	if(i+6 > BUFFER_SIZE)
+		return -1;
+	if(buffer[i] == 0x0 &&
+		buffer[i + 1] == 0x0 &&
+		buffer[i + 2] == 0x0 &&
+		buffer[i + 3] == 0xc0 &&
 		buffer[i + 4] == 0x23 &&
 		buffer[i + 5] == 0x31 &&
 		buffer[i + 6] == 0x34)//-2
