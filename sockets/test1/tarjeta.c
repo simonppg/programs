@@ -50,8 +50,8 @@ int main() {
 				while(1) {
 					printf("\n");
 					//sensar();
-					//recibir();
-					enviar();
+					recibir();
+					//enviar();
 					sleep(1);
 				}
 				printf("while escucha end\n");
@@ -121,19 +121,18 @@ int recibir() {
 	while(n >= 0) {
 		if(buffer[n] == 0x34 &&
 			buffer[n - 1] == 0x31 &&
-			buffer[n - 2] == 0x23 &&
-			buffer[n - 3] == 0x0) {
-			n = n - 4;
+			buffer[n - 2] == 0x23) {
+			n = n - 3;
 			printf("\n");
 		}
-		printf("[%x],", buffer[n]);
+		printf("%d[%x],", n, buffer[n]);
 		n--;
 	}
 
 	printf("\n");
 	printf("\n");
-	int inicio;
-	int fin;
+	int inicio = 0;
+	int fin = 0;
 	int result;
 	if((result  = buscaTrama(buffer, noRecv, &inicio, &fin)) == 0 ) {
 		printf("Hay una trama desde %d hasta %d, %d\n", inicio, fin, fin - inicio);
@@ -169,7 +168,7 @@ int enviar() {
 	//n = send(sockfd, &ph, sizeof(float),0);
 
 	float tramaSalida[14];
-	temp = 1;
+	temp = 1.5;
 	ph = 2;
 	orp = 3;
 	torque = 4;
@@ -227,17 +226,21 @@ int actuar() {
 }
 
 int buscaTrama(uint8_t *buffer, int size, int *begin, int *end) {
-	int i;
+	int i, hayInicio = 0, hayFin = 0;
 	for (i = 0; i < size; ++i)
 	{
 		if(beginTrama(buffer, i) == 0) {
 			printf(" begin\n");
-			*begin = i;
+			if(hayInicio == 0)
+				*begin = i;
+			hayInicio++;
 		}
 		else if(endTrama(buffer, i) == 0) {
 			printf(" end\n");
-			*end = i;
-			return 0;
+			if(hayInicio == 1){
+				*end = i;
+				hayFin++;
+			}
 		}
 		else if(buffer[i] == 0x34){
 			printf("[%x],\n", buffer[i]);
@@ -245,6 +248,8 @@ int buscaTrama(uint8_t *buffer, int size, int *begin, int *end) {
 		else {
 			printf("[%x],", buffer[i]);
 		}
+		if(hayInicio == 1 && hayFin == 1)
+			return 0;
 	}
 	return -1;
 }
@@ -278,7 +283,7 @@ int beginTrama(uint8_t *buffer, int i) {
 		buffer[i + 3] == 0x0 &&
 		buffer[i + 4] == 0x23 &&
 		buffer[i + 5] == 0x31 &&
-		buffer[i + 6] == 0x34)
+		buffer[i + 6] == 0x34)//-1
 		return 0;
 	return -1;
 }
@@ -292,7 +297,7 @@ static int endTrama(uint8_t *buffer, int i) {
 		buffer[i + 3] == 0x0 &&
 		buffer[i + 4] == 0x23 &&
 		buffer[i + 5] == 0x31 &&
-		buffer[i + 6] == 0x34)
+		buffer[i + 6] == 0x34)//-2
 		return 0;
 	return -1;
 }
