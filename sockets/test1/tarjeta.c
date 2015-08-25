@@ -58,7 +58,7 @@ int main() {
 					int intentos = 0;
 					while((a = enviar()) != 0) 
 					{
-						sleep(1);
+						//sleep(1);
 						/*if(intentos == 1)
 							break;
 						intentos++;*/
@@ -67,7 +67,8 @@ int main() {
 					intentos = 0;
 					while((a = recibir()) != 0)
 					{
-						sleep(1);
+						printf("recibiendo...\n");
+						//sleep(1);
 						/*if(intentos == 1)
 							break;
 						intentos++;*/
@@ -147,13 +148,13 @@ int recibir() {
 			n = n - 3;
 			//printf("\n");
 		}
-		//printf("%d[%x],", n, buffer[n]);
+		//printf("[%x],", buffer[n]);
 		n--;
 	}
 
 	//printf("\n");
 	//printf("\n");
-	printf("Datos leidos: %d\n", noRecv);
+	//printf("Datos leidos: %d\n", noRecv);
 	int inicio = 0;
 	int fin = 0;
 	int result;
@@ -168,7 +169,7 @@ int recibir() {
 			getSetPointsLE(setPoints, buffer, elementos, inicio);
 			int count = 0;
 			while(count < elementos) {
-				printf("[%f], ", setPoints[count]);
+				//printf("[%f], ", setPoints[count]);
 				if((count % 2) != 0){
 					//printf("\n");
 				}
@@ -185,8 +186,8 @@ int recibir() {
 		}
 	}
 	if(result == -1 && noRecv > 100) {
-		printf("result: %d, noRecv: %d\n", result, noRecv);
-		printf("%s\n", buffer);
+		//printf("result: %d, noRecv: %d\n", result, noRecv);
+		//printf("%s\n", buffer);
 		
 		/*int recorre = 0;
 		while(recorre <= noRecv) {
@@ -197,7 +198,7 @@ int recibir() {
 		//exit(-1);
 	}
 
-	//printf("Read end\n");
+	printf("Read fail\n");
 	//printf("\n");
 	//exit(1);	
 	return -1;
@@ -219,7 +220,7 @@ int enviar() {
 	biomasa = 5;
 	brix = 6;
 
-	tramaSalida[0] = -1;
+	/*tramaSalida[0] = -1;
 	tramaSalida[1] = 300;
 	tramaSalida[2] = temp; 
 	tramaSalida[3] = 1; 
@@ -232,14 +233,23 @@ int enviar() {
 	tramaSalida[10] = biomasa;
 	tramaSalida[11] = 1;
 	tramaSalida[12] = brix;
-	tramaSalida[13] = -2;
+	tramaSalida[13] = -2;*/
+
+
+	tramaSalida[0] = temp; 
+	tramaSalida[1] = ph; 
+	tramaSalida[2] = orp;
+	tramaSalida[3] = torque;
+	tramaSalida[4] = biomasa;
+	tramaSalida[5] = brix;
 
 	uint8_t valortemp;
 	uint8_t valor;
 	uint32_t tramaSalidaBinblock[12];
 
 	//Esta funciono con binary
-	n = send(newsockfd, &tramaSalida, 14 * sizeof(float), MSG_NOSIGNAL);
+	n = send(newsockfd, &tramaSalida, 6 * sizeof(float), MSG_NOSIGNAL);
+	
 
 	/*valortemp = temp << 8
 	valor = (temp & 0xFF000000) >> 24;
@@ -254,9 +264,10 @@ int enviar() {
 	
 	//printf("Send end\n");
 	if (n < 0){
-		//printf("ERROR writing to socket");
-		return 0;
+		printf("ERROR writing to socket");
+		return -1;
 	}
+	printf("total de envios: %d\n", n);
 	
 	return 0;
 }
