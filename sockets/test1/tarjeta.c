@@ -29,10 +29,9 @@ static float brix;
 int init_net();
 int escucha();
 int close_net();
-int sensar();
 int recibir();
+int recibir2();
 int enviar();
-int actuar();
 int buscaTrama(uint8_t *buffer, int size, int *begin, int *end);
 static float getFloat(uint32_t int32);
 static uint16_t from8To16(uint8_t msb, uint8_t lsb);
@@ -45,6 +44,7 @@ static int getSetPointsBE(float *setPoints, uint8_t *buffer, int noElementos, in
 static int getSetPointsLE(float *setPoints, uint8_t *buffer, int noElementos, int begin);
 
 int main() {
+	setbuf(stdout, NULL);
 	if(init_net() == 0) {
 		printf("init_net\n");
 		while(1) {
@@ -52,31 +52,29 @@ int main() {
 			while(escucha() == 0) {
 				printf("while escucha init\n");
 				while(1) {
-					//printf("\n");
-					//sensar();
 					int a = -1;
 					int intentos = 0;
-					while((a = enviar()) != 0) 
+					a = enviar();
+					/*while((a = enviar()) != 0) 
 					{
 						//sleep(1);
 						/*if(intentos == 1)
 							break;
-						intentos++;*/
-					}
+						intentos++;* /
+					}*/
 					a = -1;
 					intentos = 0;
-					while((a = recibir()) != 0)
+					//sleep(3);
+					a = recibir();
+					//sleep(3);
+					/*while((a = recibir()) != 0)
 					{
-						printf("recibiendo...\n");
 						//sleep(1);
-						/*if(intentos == 1)
+						//printf("recibiendo...\n");
+						/*if(intentos == 3)
 							break;
-						intentos++;*/
-					}
-					/*recibir();
-					enviar();
-					sleep(1);*/
-					//sleep(1);
+						intentos++;* /
+					}*/
 				}
 				printf("while escucha end\n");
 			}
@@ -88,6 +86,173 @@ int main() {
 	close_net();
 	return 0;
 }
+
+int recibir() {
+	sleep(10);
+	int noRecv = 0;
+	bzero(buffer, 256);
+	noRecv = read(newsockfd, buffer, 255);
+
+	//float tramaSalida[10];
+	//noRecv = recv(newsockfd, &tramaSalida, 4*10 * sizeof(uint8_t), MSG_NOSIGNAL);
+
+	printf("Datos leidos: %d\n", noRecv);
+	fflush(stdout); // Will now print everything in the stdout buffer
+
+
+	exit(-1);
+
+	return 0;
+}
+
+int enviar() {
+
+	float tramaSalida[6];
+	temp++;
+	ph = 2;
+	orp = 3;
+	torque = 4;
+	biomasa = 5;
+	brix = 6;
+
+	tramaSalida[0] = temp; 
+	tramaSalida[1] = ph; 
+	tramaSalida[2] = orp;
+	tramaSalida[3] = torque;
+	tramaSalida[4] = biomasa;
+	tramaSalida[5] = brix;
+
+	uint8_t valortemp;
+	uint8_t valor;
+	uint32_t tramaSalidaBinblock[12];
+
+	//Esta funciono con binary
+	n = send(newsockfd, &tramaSalida, 6 * sizeof(float), MSG_NOSIGNAL);
+	
+	/*n = send(sockfd, &temp, sizeof(float),0);
+	n = send(sockfd, &ph, sizeof(float),0);
+	n = send(sockfd, &orp, sizeof(float),0);
+	n = send(sockfd, &torque, sizeof(float),0);
+	n = send(sockfd, &biomasa, sizeof(float),0);
+	n = send(sockfd, &brix, sizeof(float),0);*/
+	
+	//printf("Send end\n");
+	if (n < 0){
+		//printf("ERROR writing to socket");
+		//fprintf(stderr, "ERROR writing to socket");
+		return -1;
+	}
+	//printf("total de envios: %d\n", n);
+	//fprintf(stderr, "total de envios: %d\n", n);
+	return 0;
+}
+
+int recibir2() {
+	//printf("\nRead\n");
+	int noRecv = 0;
+	bzero(buffer, 256);
+	n = read(newsockfd, buffer, 255);
+	//n = read(newsockfd, &ph, sizeof(int));
+	if (n < 0){
+		//printf("ERROR reading from socket\n");
+	}
+	//printf("Here is %d the message: %s\n", n, buffer);
+
+	noRecv = n;
+
+	/*while(n >= 0) {
+		if(buffer[n] == 0x34 &&
+			buffer[n - 1] == 0x31 &&
+			buffer[n - 2] == 0x23) {
+			n = n - 3;
+			//printf("\n");
+			//fprintf(stderr, "\n");
+		}
+		//printf("[%x],", buffer[n]);
+		//fprintf(stderr, "[%x],", buffer[n]);
+		n--;
+	}*/
+
+	//printf("Datos leidos: %d\n", noRecv);
+	int inicio = 0;
+	int fin = 0;
+	int result;
+	if((result  = buscaTrama(buffer, noRecv, &inicio, &fin)) == 0 ) {
+		//printf("Hay una trama desde %d hasta %d, %d\n", inicio, fin, fin - inicio);
+		int elementos = (fin - inicio - 7) / ELEMENTS_SIZE;
+		int resuduo = (fin - inicio - 7) % ELEMENTS_SIZE;
+		//fprintf(stderr, "Elementos en la trama: %d, resuduo: %d\n", elementos, resuduo);
+		//printf("Elementos en la trama: %d, resuduo: %d\n", elementos, resuduo);
+		if(resuduo == 0)
+		{
+			bzero(setPoints, ELEMENTS_IN_TRAMA);
+			getSetPointsLE(setPoints, buffer, elementos, inicio);
+			int count = 0;
+			while(count < elementos) {
+				//printf("[%f], ", setPoints[count]);
+				if((count % 2) != 0){
+					//printf("\n");
+				}
+				count++;
+			}
+
+			/*int recorre1 = 0;
+			while(recorre1 <= noRecv) {
+				printf("[%x],", buffer[recorre1]);
+				recorre1++;
+			}*/
+			//exit(0);
+			return 0;
+		}
+	}
+	if(result == -1 && noRecv > 100) {
+		//printf("result: %d, noRecv: %d\n", result, noRecv);
+		//printf("%s\n", buffer);
+		
+		/*int recorre = 0;
+		while(recorre <= noRecv) {
+			printf("[%x],", buffer[recorre]);
+			recorre++;
+		}*/
+
+		//exit(-1);
+	}
+
+	//printf("Read fail\n");
+	//printf("\n");
+	//exit(1);	
+	return 0;
+}
+
+int buscaTrama(uint8_t *buffer, int size, int *begin, int *end) {
+	int i, hayInicio = 0, hayFin = 0;
+	for (i = 0; i < size; ++i)
+	{
+		if(beginTramaLE(buffer, i) == 0) {
+			//printf(" begin\n");
+			if(hayInicio == 0)
+				*begin = i;
+			hayInicio++;
+		}
+		else if(endTramaLE(buffer, i) == 0) {
+			//printf(" end\n");
+			if(hayInicio == 1){
+				*end = i;
+				hayFin++;
+			}
+		}
+		else if(buffer[i] == 0x34){
+			//printf("[%x],\n", buffer[i]);
+		}
+		else {
+			//printf("[%x],", buffer[i]);
+		}
+		if(hayInicio == 1 && hayFin == 1)
+			return 0;
+	}
+	return -1;
+}
+
 int init_net(){
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -126,188 +291,6 @@ int close_net() {
 	close(newsockfd);
 	close(sockfd);
 	return 0;
-}
-
-int recibir() {
-	//printf("\nRead\n");
-	int noRecv = 0;
-	bzero(buffer, 256);
-	n = read(newsockfd, buffer, 255);
-	//n = read(newsockfd, &ph, sizeof(int));
-	if (n < 0){
-		//printf("ERROR reading from socket\n");
-	}
-	//printf("Here is %d the message: %s\n", n, buffer);
-
-	noRecv = n;
-
-	while(n >= 0) {
-		if(buffer[n] == 0x34 &&
-			buffer[n - 1] == 0x31 &&
-			buffer[n - 2] == 0x23) {
-			n = n - 3;
-			//printf("\n");
-		}
-		//printf("[%x],", buffer[n]);
-		n--;
-	}
-
-	//printf("\n");
-	//printf("\n");
-	//printf("Datos leidos: %d\n", noRecv);
-	int inicio = 0;
-	int fin = 0;
-	int result;
-	if((result  = buscaTrama(buffer, noRecv, &inicio, &fin)) == 0 ) {
-		//printf("Hay una trama desde %d hasta %d, %d\n", inicio, fin, fin - inicio);
-		int elementos = (fin - inicio - 7) / ELEMENTS_SIZE;
-		int resuduo = (fin - inicio - 7) % ELEMENTS_SIZE;
-		printf("Elementos en la trama: %d, resuduo: %d\n", elementos, resuduo);
-		if(resuduo == 0)
-		{
-			bzero(setPoints, ELEMENTS_IN_TRAMA);
-			getSetPointsLE(setPoints, buffer, elementos, inicio);
-			int count = 0;
-			while(count < elementos) {
-				//printf("[%f], ", setPoints[count]);
-				if((count % 2) != 0){
-					//printf("\n");
-				}
-				count++;
-			}
-
-			/*int recorre1 = 0;
-			while(recorre1 <= noRecv) {
-				printf("[%x],", buffer[recorre1]);
-				recorre1++;
-			}*/
-			//exit(0);
-			return 0;
-		}
-	}
-	if(result == -1 && noRecv > 100) {
-		//printf("result: %d, noRecv: %d\n", result, noRecv);
-		//printf("%s\n", buffer);
-		
-		/*int recorre = 0;
-		while(recorre <= noRecv) {
-			printf("[%x],", buffer[recorre]);
-			recorre++;
-		}*/
-
-		//exit(-1);
-	}
-
-	printf("Read fail\n");
-	//printf("\n");
-	//exit(1);	
-	return -1;
-}
-
-int enviar() {
-	/*printf("\nSend: %.4f, %.4f, %.4f, %.4f, %.4f, %.4f\n",
-		temp, ph, orp,
-		torque, biomasa, brix);*/
-	//n = write(newsockfd, "I got your message", 18);
-	//n = write(newsockfd, &ph, sizeof(int));
-	//n = send(sockfd, &ph, sizeof(float),0);
-
-	float tramaSalida[14];
-	temp = 1.5;
-	ph = 2;
-	orp = 3;
-	torque = 4;
-	biomasa = 5;
-	brix = 6;
-
-	/*tramaSalida[0] = -1;
-	tramaSalida[1] = 300;
-	tramaSalida[2] = temp; 
-	tramaSalida[3] = 1; 
-	tramaSalida[4] = ph; 
-	tramaSalida[5] = 1;
-	tramaSalida[6] = orp;
-	tramaSalida[7] = 1;
-	tramaSalida[8] = torque;
-	tramaSalida[9] = 1;
-	tramaSalida[10] = biomasa;
-	tramaSalida[11] = 1;
-	tramaSalida[12] = brix;
-	tramaSalida[13] = -2;*/
-
-
-	tramaSalida[0] = temp; 
-	tramaSalida[1] = ph; 
-	tramaSalida[2] = orp;
-	tramaSalida[3] = torque;
-	tramaSalida[4] = biomasa;
-	tramaSalida[5] = brix;
-
-	uint8_t valortemp;
-	uint8_t valor;
-	uint32_t tramaSalidaBinblock[12];
-
-	//Esta funciono con binary
-	n = send(newsockfd, &tramaSalida, 6 * sizeof(float), MSG_NOSIGNAL);
-	
-
-	/*valortemp = temp << 8
-	valor = (temp & 0xFF000000) >> 24;
-	tramaSalidaBinblock[]*/
-
-	/*n = send(sockfd, &temp, sizeof(float),0);
-	n = send(sockfd, &ph, sizeof(float),0);
-	n = send(sockfd, &orp, sizeof(float),0);
-	n = send(sockfd, &torque, sizeof(float),0);
-	n = send(sockfd, &biomasa, sizeof(float),0);
-	n = send(sockfd, &brix, sizeof(float),0);*/
-	
-	//printf("Send end\n");
-	if (n < 0){
-		printf("ERROR writing to socket");
-		return -1;
-	}
-	printf("total de envios: %d\n", n);
-	
-	return 0;
-}
-
-int sensar() {
-	//ph++;
-	return 0;
-}
-
-int actuar() {
-	return 0;
-}
-
-int buscaTrama(uint8_t *buffer, int size, int *begin, int *end) {
-	int i, hayInicio = 0, hayFin = 0;
-	for (i = 0; i < size; ++i)
-	{
-		if(beginTramaLE(buffer, i) == 0) {
-			//printf(" begin\n");
-			if(hayInicio == 0)
-				*begin = i;
-			hayInicio++;
-		}
-		else if(endTramaLE(buffer, i) == 0) {
-			//printf(" end\n");
-			if(hayInicio == 1){
-				*end = i;
-				hayFin++;
-			}
-		}
-		else if(buffer[i] == 0x34){
-			//printf("[%x],\n", buffer[i]);
-		}
-		else {
-			//printf("[%x],", buffer[i]);
-		}
-		if(hayInicio == 1 && hayFin == 1)
-			return 0;
-	}
-	return -1;
 }
 
 int getSetPointsBE(float *setPoints, uint8_t *buffer, int noElementos, int begin) {
