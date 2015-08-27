@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <math.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #define BUFFER_SIZE 		256
 #define ELEMENTS_IN_TRAMA 	8*2 	//8 pares de datos (clave, setPoint)
@@ -43,6 +45,8 @@ static int endTramaLE(uint8_t *buffer, int i);
 static int getSetPointsBE(float *setPoints, uint8_t *buffer, int noElementos, int begin);
 static int getSetPointsLE(float *setPoints, uint8_t *buffer, int noElementos, int begin);
 
+void closeSocket(int fd);
+
 int main() {
 	setbuf(stdout, NULL);
 	if(init_net() == 0) {
@@ -52,34 +56,13 @@ int main() {
 			while(escucha() == 0) {
 				printf("while escucha init\n");
 				while(1) {
-					int a = -1;
-					int intentos = 0;
+					int a;
 					a = enviar();
-					/*while((a = enviar()) != 0) 
-					{
-						//sleep(1);
-						/*if(intentos == 1)
-							break;
-						intentos++;* /
-					}*/
-					a = -1;
-					intentos = 0;
-					//sleep(3);
 					a = recibir();
-					//sleep(3);
-					/*while((a = recibir()) != 0)
-					{
-						//sleep(1);
-						//printf("recibiendo...\n");
-						/*if(intentos == 3)
-							break;
-						intentos++;* /
-					}*/
 				}
 				printf("while escucha end\n");
 			}
 			printf("while 1 end\n");
-			sleep(1);
 		}
 	}
 	printf("Saliendo\n");
@@ -88,19 +71,46 @@ int main() {
 }
 
 int recibir() {
-	sleep(10);
 	int noRecv = 0;
 	bzero(buffer, 256);
-	noRecv = read(newsockfd, buffer, 255);
+	//noRecv = read(newsockfd, buffer, 255);
 
-	//float tramaSalida[10];
-	//noRecv = recv(newsockfd, &tramaSalida, 4*10 * sizeof(uint8_t), MSG_NOSIGNAL);
+	double tramaSalida[10];
+	bzero(tramaSalida, 10);
+	noRecv = read(newsockfd, &tramaSalida[0], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[1], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[2], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[3], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[4], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[5], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[6], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[7], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[8], sizeof(double));
+	noRecv = read(newsockfd, &tramaSalida[9], sizeof(double));
 
-	printf("Datos leidos: %d\n", noRecv);
-	fflush(stdout); // Will now print everything in the stdout buffer
+	//noRecv = recv(newsockfd, &tramaSalida, sizeof(double), MSG_NOSIGNAL);
 
+	if(noRecv > 0) {
+		printf("\nDatos leidos: %d", noRecv);
+		printf("\nHere is the message: \n%s", buffer);
+		fflush(stdout); // Will now print everything in the stdout buffer
 
-	exit(-1);
+		int n = noRecv;
+		/*while(n >= 0) {
+			printf("[%x],", buffer[n]);
+			n--;
+		}*/
+		while(n > 0) {
+			printf("[%f],", tramaSalida[n]);
+			n--;
+		}
+		printf("\n");
+		//closeSocket(newsockfd);
+		//exit(-1);
+	}
+	else {
+		return -1;
+	}
 
 	return 0;
 }
@@ -128,13 +138,6 @@ int enviar() {
 
 	//Esta funciono con binary
 	n = send(newsockfd, &tramaSalida, 6 * sizeof(float), MSG_NOSIGNAL);
-	
-	/*n = send(sockfd, &temp, sizeof(float),0);
-	n = send(sockfd, &ph, sizeof(float),0);
-	n = send(sockfd, &orp, sizeof(float),0);
-	n = send(sockfd, &torque, sizeof(float),0);
-	n = send(sockfd, &biomasa, sizeof(float),0);
-	n = send(sockfd, &brix, sizeof(float),0);*/
 	
 	//printf("Send end\n");
 	if (n < 0){
@@ -283,6 +286,8 @@ int escucha() {
 		printf("ERROR on accept");
 		return -1;
 	}
+	//fcntl(newsockfd, F_SETFL, O_NONBLOCK);
+
 	printf("OK on accept");
 	return 0;
 }
@@ -418,3 +423,37 @@ static uint32_t from16to32(uint16_t msb, uint16_t lsb)
 	valor = valor + lsb;
 	return valor;
 }
+
+void closeSocket(int fd) {      // *not* the Windows closesocket()
+   if (fd >= 0) {
+      //getSO_ERROR(fd); // first clear any errors, which can cause close to fail
+      if (shutdown(fd, SHUT_RDWR) < 0) // secondly, terminate the 'reliable' delivery
+         if (errno != ENOTCONN && errno != EINVAL) // SGI causes EINVAL
+            perror("shutdown");
+      if (close(fd) < 0) // finally call close()
+         perror("close");
+   }
+}
+
+/*
+int getSO_ERROR(int fd) {
+   int err = 1;
+   socklen_t len = sizeof err;
+   if (-1 == getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&err, &len))
+      FatalError("getSO_ERROR");
+   if (err)
+      errno = err;              // set errno to the socket SO_ERROR
+   return err;
+}
+
+void closeSocket(int fd) {      // *not* the Windows closesocket()
+   if (fd >= 0) {
+      getSO_ERROR(fd); // first clear any errors, which can cause close to fail
+      if (shutdown(fd, SHUT_RDWR) < 0) // secondly, terminate the 'reliable' delivery
+         if (errno != ENOTCONN && errno != EINVAL) // SGI causes EINVAL
+            Perror("shutdown");
+      if (close(fd) < 0) // finally call close()
+         Perror("close");
+   }
+}
+*/
