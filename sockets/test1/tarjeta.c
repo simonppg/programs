@@ -286,7 +286,7 @@ int escucha() {
 		printf("ERROR on accept");
 		return -1;
 	}
-	//fcntl(newsockfd, F_SETFL, O_NONBLOCK);
+	fcntl(newsockfd, F_SETFL, O_NONBLOCK);
 
 	printf("OK on accept");
 	return 0;
