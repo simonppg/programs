@@ -3,7 +3,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
-//#include <unistd.h>
 #include <string.h>
 
 typedef struct {
@@ -18,7 +17,7 @@ int open_record_update(char *filename)
 	int fd;
 	fd = open(filename, O_CREAT | O_RDWR, 0644);
 	if(fd == -1)
-		perror("open_record");
+		perror("open_record_update");
 	return fd;
 }
 
@@ -40,7 +39,7 @@ int insert_record(int fd, person_rec *rec)
 {
 	int ret;
 	ret = write(fd, rec, sizeof(person_rec));
-	return 0;
+	return ret;
 }
 
 int get_record(int fd, person_rec *rec, int key)
@@ -72,18 +71,15 @@ int delete_record(int fd, int key)
 	{
 		if(ret == 0)
 		{
-			printf("0\n");
 			return ret;
 		}
 		else if (key == rec.key)
 		{
-			printf("key equals\n");
 			lseek(fd, pos, SEEK_SET);
 			rec.key = 0;
 			ret = write(fd, &rec, sizeof(person_rec));
 			return ret;
 		}
-		printf("pos: 0\n");
 		pos = lseek(fd, 0, SEEK_CUR);
 	}
 	return ret;
@@ -94,33 +90,30 @@ int main(int argc, char const *argv[])
 	int fd;
 	person_rec rec;
 
-	/* fd = open_record("data1"); */
-
 	if(argc > 1)
 	{
 		/* insert */
-
 		if(argc > 5 && !strcmp(argv[1], "insert"))
 		{
-			fd = open_record("data1");
+			fd = open_record("data1.dbsppg");
 			rec.key = atoi(argv[2]);
 			strcpy(rec.fname, argv[3]);
 			strcpy(rec.lname, argv[4]);
 			rec.age = atoi(argv[5]);
 			insert_record(fd, &rec);
 		}
-		/* delete */
 
+		/* delete */
 		if(argc > 2 && !strcmp(argv[1], "delete"))
 		{
-			fd = open_record_update("data1");
+			fd = open_record_update("data1.dbsppg");
 			delete_record(fd, atoi(argv[2]));
 		}
-		/* print */
 
+		/* print */
 		if(argc > 2 && !strcmp(argv[1], "print"))
 		{
-			fd = open_record("data1");
+			fd = open_record("data1.dbsppg");
 			get_record(fd, &rec, atoi(argv[2]));
 
 			printf("Key: %d\n", rec.key);
