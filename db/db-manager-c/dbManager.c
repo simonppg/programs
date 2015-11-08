@@ -87,7 +87,7 @@ int delete_record(int fd, int key)
 
 int main(int argc, char const *argv[])
 {
-	int fd;
+	int fd = -1;
 	person_rec rec;
 
 	if(argc > 1)
