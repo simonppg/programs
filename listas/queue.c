@@ -74,85 +74,87 @@ int show_point(Point *p)
 	return 0;
 }
 
+typedef struct {
+	Point *Queue[QUEUE_SIZE];
+	int QueueIn, QueueOut;
+} Cola;
+Cola cola_ph, cola_orp, cola_brix;
+
+void ColaInit(Cola *cola)
+{
+	cola->QueueIn = cola->QueueOut = 0;
+}
+
+int ColaPut(Cola *cola, Point *new)
+{
+	if(cola->QueueIn == (( cola->QueueOut - 1 + QUEUE_SIZE) % QUEUE_SIZE))
+	{
+		return -1; // Queue Full
+	}
+
+	cola->Queue[cola->QueueIn] = new;
+
+	cola->QueueIn = (cola->QueueIn + 1) % QUEUE_SIZE;
+
+	return 0; // No errors
+}
+
+int ColaGet(Cola *cola, Point **old)
+{
+	if(cola->QueueIn == cola->QueueOut)
+	{
+		return -1; // Queue Empty - nothing to get
+	}
+
+	*old = cola->Queue[cola->QueueOut];
+
+	cola->QueueOut = (cola->QueueOut + 1) % QUEUE_SIZE;
+
+	return 0; // No errors
+}
+
 int main(int argc, char const *argv[])
 {
 	Point *a;
-	if(QueuePut(new_point(0,10)) == -1)
+	if(ColaPut(&cola_ph, new_point(0,10)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(1,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(1,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(2,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(2,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(3,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(3,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(4,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(4,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(5,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(5,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(6,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(6,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(7,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(7,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(8,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(8,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(9,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(9,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(10,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(10,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(11,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(11,9)) == -1)
 		printf("\nFull fifo");
-	if(QueuePut(new_point(12,9)) == -1)
+	if(ColaPut(&cola_ph, new_point(12,9)) == -1)
 		printf("\nFull fifo");
 
-	if(QueueGet(&a) == -1)
+	if(ColaGet(&cola_ph, &a) == -1)
 		printf("\nEmpty fifo");
 	else
 		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
-	if(QueueGet(&a) == -1)
-		printf("\nEmpty fifo");
-	else
-		show_point(a);
+	
+
+	while(ColaGet(&cola_ph, &a) != -1) {
+		//show_point(a);
+		free(a);
+	}
 
 	printf("\n");
+	while(1){}
 	return 0;
 }

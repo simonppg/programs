@@ -40,6 +40,8 @@ int main(void)
 	list_print(mt);
 
 	list_free(mt);   /* always remember to free() the malloc()ed memory */
+	list_add_element(mt, 100, 100);
+	list_print(mt);
 	free(mt);        /* free() if list is kept separate from free()ing the structure, I think its a good design */
 	mt = NULL;      /* after free() always set that pointer to NULL, C will run havon on you if you try to use a dangling pointer */
 
