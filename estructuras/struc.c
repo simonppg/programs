@@ -15,6 +15,40 @@ static int open_files(Pwm_s *pwm){
 	pwm->activo = 0;
 }
 
+int dump(void *myStruct, long size)
+{
+	unsigned int i;
+	const unsigned char * const px = (unsigned char*)myStruct;
+	for (i = 0; i < size; ++i) {
+		if( i % (sizeof(int) * 8) == 0){
+			printf("\n%08X ", i);
+		}
+		else if( i % 4 == 0){
+			printf(" ");
+		}
+		printf("%02X", px[i]);
+	}
+
+	printf("\n\n");
+}
+
+int dumpToFile(void *myStruct, long size)
+{
+	FILE *f = fopen("dump.txt", "w");
+	if (f == NULL)
+	{
+		printf("Error opening file!\n");
+		return -1;
+	}
+		
+	unsigned int i;
+	const unsigned char * const px = (unsigned char*)myStruct;
+	for (i = 0; i < size; ++i) {
+		fprintf(f, "%x", px[i]);
+	}
+	fclose(f);
+}
+
 int main(int argc, char const *argv[])
 {
 	open_files(&p8_13);
