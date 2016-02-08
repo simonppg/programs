@@ -1,15 +1,13 @@
-// bowling_game.c
-
 #include <stdbool.h>
 #include <stdlib.h>
 
 #include "bowling_game.h"
 
 enum  { max_rolls = 21 };
-typedef struct Bowling_game_s {
+struct Bowling_game_s {
 	int rolls[max_rolls];
 	int current_roll;
-}Bowling_game;
+};
 
 Bowling_game * bowling_game_create() {
 	Bowling_game * game = malloc(sizeof(Bowling_game));
