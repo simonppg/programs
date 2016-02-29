@@ -63,3 +63,6 @@
 .dirstamp
 *.o
 *~
+
+#matlab
+*.mexa64
