@@ -1,4 +1,5 @@
 #include <stdlib.h>
+
 #include "fifo.h"
 
 struct Fifo_s {
@@ -15,7 +16,7 @@ Fifo * fifo_create()
 	return fifo;
 }
 
-void fifo_destoy(Fifo *fifo)
+void fifo_destroy(Fifo *fifo)
 {
 	if (fifo == NULL)
 		return;
