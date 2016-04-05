@@ -3,24 +3,34 @@
 #include "fifo.h"
 
 struct Fifo_s {
-	char *name;
+	Node *in, *out;
 };
 
-Fifo * fifo_create()
+Node * node_create()
 {
-	Fifo * fifo = malloc( sizeof(Fifo) );
+	Node * node = malloc( sizeof(Node) );
 
-	if (!fifo)
+	if (!node)
 		return NULL;
+	
+	node->name = malloc( sizeof(char) * 50 );
+	node->name = "new node\0";
 
-	return fifo;
+	return node;
 }
 
-void fifo_destroy(Fifo *fifo)
+/*Fifo * fifo_create()
 {
-	if (fifo == NULL)
+	Fifo * fifo;
+	fifo->in = fifo->out = NULL;
+	return fifo;
+}*/
+
+void node_destroy(Node *node)
+{
+	if (node == NULL)
 		return;
 
-	free(fifo);
+	free(node);
 }
 
