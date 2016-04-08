@@ -1,0 +1,13 @@
+function net_init(arg)
+
+ttInitKernel('prioFP')
+
+data.K = 2;            % controller proportional gain
+data.exectime = 0.5;   % control task execution time
+starttime = 0.0;       % control task start time
+period = 0.5;          % control task period
+
+data.socket = tcpip('192.168.7.2', 10000, 'NetworkRole', 'client');
+fopen(data.socket);
+
+ttCreatePeriodicTask('ctrl_task', starttime, period, 'ctrl_code', data)

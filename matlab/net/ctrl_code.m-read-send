@@ -1,0 +1,19 @@
+function [exectime, data] = ctrl_code(segment, data)
+
+switch segment
+ case 1
+  y = ttAnalogIn(1);
+  data.u = y;
+  enviar = [10,10,10,4.3,5.4,6.5,7.6,8.7,9.8,10.9];
+  disp('TramaSalida');
+  disp(enviar);
+  fwrite(data.socket, enviar, 'single');
+  recibir = zeros(6);
+  recibir = fread(data.socket, 6, 'single');
+  disp('TramaEntrada');
+  disp(recibir);
+  exectime = 0.5;
+ case 2
+  ttAnalogOut(1, data.u)
+  exectime = -1;
+end

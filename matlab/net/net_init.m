@@ -1,0 +1,10 @@
+function net_init(arg)
+
+ttInitKernel('prioFP')
+
+data.K = 2;            % controller proportional gain
+data.exectime = 0.01;   % control task execution time
+starttime = 0.0;       % control task start time
+period = 1;          % control task period
+
+ttCreatePeriodicTask('ctrl_task', starttime, period, 'ctrl_code', data)
