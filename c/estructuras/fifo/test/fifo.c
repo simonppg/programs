@@ -12,6 +12,7 @@ void create_node()
 	Node *node;
 	node = node_create();
 	assert_non_null(node);
+	assert_non_null(node->name);
 	node_destroy(node);
 }
 
@@ -24,6 +25,10 @@ void insert_node_test()
 	node = node_create();
 	assert_non_null(node);
 	assert_non_null(node->name);
+	Fifo *fifo;
+	fifo = fifo_create();
+	assert_non_null(fifo);
+	assert_int_equal(fifo->size, 0);
 }
 
 int main()

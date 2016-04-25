@@ -1,0 +1,9 @@
+Makefile
+aclocal.m4
+autom4te.cache
+autotools
+check_fifo
+config.status
+configure
+libtool
+m4
