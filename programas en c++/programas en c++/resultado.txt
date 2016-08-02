@@ -1,0 +1,13 @@
+a=b+c;                                                     Instruccion...Correcta
+valocidad=distancia/tiempo;                                Instruccion...Correcta
+Arblo=59;                                                  Instruccion...Correcta
+guitarra=4*6;                                              Instruccion...Correcta
+Ejemplo sin punto y coma                                   Instruccion...Incorrecta
+Ejemplo sin punto y coma otra vez                          Instruccion...Incorrecta
+c=a/b+c-f;                                                 Instruccion...Correcta
+c=34+36                                                    Instruccion...Incorrecta
+c=345+                                                     Instruccion...Incorrecta
+b=dfd-;                                                    Instruccion...Incorrecta
+c=a;                                                       Instruccion...Correcta
+a=-3;                                                      Instruccion...Correcta
+b=*4;                                                      Instruccion...Incorrecta

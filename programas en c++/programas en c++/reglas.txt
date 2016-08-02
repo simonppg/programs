@@ -1,0 +1,15 @@
+#include"conio.h"
+#include<stdio.h>
+#define id 34
+#define id 356
+int a;
+char c,r;
+
+[void,int,float,char,short,long,double] main()
+{
+	id = id op const op id;
+	printf("-------------",id);
+	printf("----------------");
+	printf("----",id);
+	
+}

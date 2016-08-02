@@ -1,0 +1,60 @@
+/*Programas*/
+#include <stdio.h>
+#include <conio.h>
+#include "stdlib.h"
+#include "iostream"
+#define CONSTE 90
+#define GRAVEDAD 9.86
+#define TIEMPOS 60
+//seccion de id
+float valor, valor1, valor444358325;
+int a;
+char c, r;
+void,int,float,char,short,long,double main()
+{
+	clrscr();
+ 	int a,b354d563;
+	int valor14 = 34, val3or2 = 9345, result;
+	char array[]={"Hola mundo"};
+ 	printf("El numero es: ");
+  	scanf("%d",&a);
+   	if(a>0)
+   	{
+    		printf("El numero %d es positivo",a);
+   	}
+   	else
+   	{
+   		printf("El numero %d es negativo",a);
+   	}
+	if(valor1==valor2)							//detecta si son iguales.
+	{
+		result=valor1-valor2;
+		printf("Los numeros %d y %d son iguales",valor1,valor2);
+	}
+	do
+	{									/*Detecta si valor1 es el mayor
+										de los dos numeros*/
+		if(valor1>valor2)							
+		{
+			result=valor1-valor2;
+			printf("%d es mayor que %d",valor1,valor2);
+		}
+		if(valor1<valor2)
+		{
+			result=valor1-valor2;
+			printf("%d es menor que %d",valor1,valor2);
+		}
+	}while(a)
+
+	valor1=result+GRAVEDAD*b-r/t;
+	result7 = result + GRAVEDAD * b - r / t;
+	printf("-------------",id);
+	printf("----------------");
+	printf("----"id);
+
+ 	getche();
+ 	return(0);
+}
+for auto break case while getche else for const continue default double enum extern
+float short signed sizeof static struct typedef union unsigned void volatile 
+goto long register return clrscr gotoxy getch getc gets scanf printf return int void float char
